@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "types": ["mongoose"],
+    "target": "es6",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "include": [
+    "routes/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
