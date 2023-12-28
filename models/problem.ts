@@ -5,10 +5,13 @@ export interface Problem {
   _id: Types.ObjectId,
   initialState: string,
   variations: object,
-  creator?: string,
+  answers: object,
+  questions: object,
+  creator: string,
   comment: string,
   color: string,
   level: number,
+  time: Date,
 }
 
 const ProblemSchema = new Schema<Problem>(
@@ -18,6 +21,14 @@ const ProblemSchema = new Schema<Problem>(
       required: true,
     },
     variations: {
+      type: Object,
+      required: true,
+    },
+    answers: {
+      type: Object,
+      required: true,
+    },
+    questions: {
       type: Object,
       required: true,
     },
@@ -34,6 +45,10 @@ const ProblemSchema = new Schema<Problem>(
     },
     level: {
       type: Number,
+      required: true,
+    },
+    time: {
+      type: Date,
       required: true,
     },
   }

@@ -7,6 +7,7 @@ export interface User {
   password: string,
   name: string,
   level: number,
+  time: Date,
 }
 
 const UserSchema = new Schema<User>(
@@ -14,6 +15,7 @@ const UserSchema = new Schema<User>(
     email: {
       type: String,
       required: true,
+      unique: true,
     },
     password: {
       type: String,
@@ -22,10 +24,15 @@ const UserSchema = new Schema<User>(
     name: {
       type: String,
       required: true,
+      unique: true,
     },
     level: {
       type: Number,
       required: true,
+    },
+    time: {
+      type: Date,
+      required: false,
     },
   }
 )

@@ -1,13 +1,12 @@
 import mongoose from 'mongoose';
 import App from './app';
-import { ID, PASSWORD } from './util/constants';
+import 'dotenv/config'
 
-// // Mongoose setup
+// Mongoose setup
 mongoose.set('strictQuery', false);
-const mongoUrl = `mongodb+srv://${ID}:${PASSWORD}@cluster1.74es69a.mongodb.net/GO_PROBLEM`;
 const PORT = 3001;
 
-mongoose.connect(mongoUrl).then(() => {
+mongoose.connect(process.env.MONGO_URL ?? "").then(() => {
   App.listen(PORT, () => console.log(`Listening at server port: ${PORT}`));
 
   // Insert Test Data in development if needed

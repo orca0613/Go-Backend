@@ -1,4 +1,6 @@
 import bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
+
 
 export async function hashPassword(password: string): Promise<string> {
   const saltRounds = 10;
@@ -24,4 +26,17 @@ export async function comparePassword(password: string, hash: string): Promise<b
       }
     });
   });
+}
+
+// Function to generate a random secret key
+export function generateRandomSecretKey(length: number): string {
+  const bytes = randomBytes(length);
+  return bytes.toString('hex');
+};
+
+export function isJWTPayload(auth: any, name: string) {
+  if (!auth || typeof auth === "string") {
+    return false
+  }
+  return auth.name === name
 }
