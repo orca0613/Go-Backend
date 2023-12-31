@@ -120,7 +120,7 @@ export async function getProblemsByLevel(req: Request, res: Response, next: Next
   }
 }
 
-export async function getProblemById(req: Request, res: Response, next: NextFunction) {
+export async function getProblemByIdList(req: Request, res: Response, next: NextFunction) {
   const problemIdList = req.params.problemIdList
   const idList = problemIdList.split("&")
   try {
@@ -131,12 +131,11 @@ export async function getProblemById(req: Request, res: Response, next: NextFunc
   }
 }
 
-export async function getProblemsWithQuestions(req: Request, res: Response, next: NextFunction) {
-  const problemIdList = req.params.problemIdList
-  const idList = problemIdList.split("&")
+export async function getProblemById(req: Request, res: Response, next: NextFunction) {
+  const problemId = req.params.problemId
   try {
-    const problemList = await Problem.find({ _id: {$in: idList}, questions: {$ne: {"0": []}}})
-    res.status(200).json(problemList)
+    const problem = await Problem.findOne({ _id: problemId})
+    res.status(200).json(problem)
   } catch (error) {
     next(error)
   }
@@ -160,55 +159,32 @@ export async function updateVariations(req: Request, res: Response, next: NextFu
     }
     if (isJWTPayload(auth, name)) {
       try {
-        switch (where) {
-          case "variations":
-            await Problem.updateOne({
-              _id: id
+        await Problem.updateOne({
+          _id: id
+        }, {
+          $set: {[where]: newVariations}
+        }, {
+          new: true
+        })
+        if (where === "questioins") {
+          if (_.isEqual(newVariations, initialVariations)) {
+            await UserDetail.updateOne({
+              name: creator
             }, {
-              $set: {variations: newVariations}
-            }, {
-              new: true
+              $pull: {withQuestions: id}
             })
-            break
-          case "answers":
-            await Problem.updateOne({
-              _id: id
+          } else {
+            await UserDetail.updateOne({
+              name: creator
             }, {
-              $set: {answers: newVariations}
-            }, {
-              new: true
+              $addToSet: {withQuestions: id}
             })
-            break
-          case "questions":
-            await Problem.updateOne({
-              _id: id
-            }, {
-              $set: {questions: newVariations}
-            }, {
-              new: true
-            })
-            if (_.isEqual(newVariations, initialVariations)) {
-              await UserDetail.updateOne({
-                name: creator
-              }, {
-                $pull: {withQuestions: id}
-              })
-            } else {
-              await UserDetail.updateOne({
-                name: creator
-              }, {
-                $addToSet: {withQuestions: id}
-              })
-            }
-            break
-          default:
-            break
+          }
         }
         res.status(200).send({ response: "updated"})
       } catch (error) {
         next(error)
       }
-
     }
   })
 }

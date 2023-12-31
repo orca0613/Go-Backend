@@ -6,8 +6,9 @@ import { isJWTPayload } from "../util/helpers";
 
 export async function changeCount(req: Request, res: Response, next: NextFunction) {
   const problemId = req.body.problemId
-  const operator = req.body.operator
+  const where = req.body.where
   const name = req.body.name
+  const count = req.body.count
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -19,69 +20,12 @@ export async function changeCount(req: Request, res: Response, next: NextFunctio
       res.sendStatus(403)
     }
     if (isJWTPayload(auth, name)) {
-      let inc = undefined
       try {
-        switch (operator) {
-          case "view":
-            // inc = {view: 1}
-            await ProblemInformation.updateOne({
-              problemId: problemId
-            }, {
-              $inc: {view: 1}
-            })
-            break
-          case "like":
-            await ProblemInformation.updateOne({
-              problemId: problemId
-            }, {
-              $inc: {like: 1}
-            })
-            break
-          case "deductLike":
-            await ProblemInformation.updateOne({
-              problemId: problemId
-            }, {
-              $inc: {like: -1}
-            })
-            break
-          case "dislike":
-            await ProblemInformation.updateOne({
-              problemId: problemId
-            }, {
-              $inc: {dislike: 1}
-            })
-            break
-          case "deductDislike":
-            await ProblemInformation.updateOne({
-              problemId: problemId
-            }, {
-              $inc: {dislike: -1}
-            })
-            break
-          case "correct":
-            await ProblemInformation.updateOne({
-              problemId: problemId
-            }, {
-              $inc: {correct: 1}
-            })
-            break
-          case "wrong":
-            await ProblemInformation.updateOne({
-              problemId: problemId
-            }, {
-              $inc: {wrong: 1}
-            })
-            break
-          default:
-            break
-        }
-        // if (inc) {
-        //   await ProblemInformation.updateOne({
-        //     problemId: problemId
-        //   }, {
-        //     $inc: inc
-        //   })
-        // }
+        await ProblemInformation.updateOne({
+          problemId: problemId
+        }, {
+          $inc: {[where]: count}
+        })
         res.status(200).send({ response: "added" })
       } catch (error) {
         next(error)

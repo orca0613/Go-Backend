@@ -4,10 +4,8 @@ import jwt from 'jsonwebtoken';
 import { env } from "process";
 import { isJWTPayload } from "../util/helpers";
 
-
-// 4 functions below are violating "Don't Repeat Yourself (DRY)"
 export async function addElement(req: Request, res: Response, next: NextFunction) {
-  const problemId = req.body.problemId
+  const element = req.body.element
   const name = req.body.name
   const where = req.body.where
   const bearerHeader = req.headers["authorization"]
@@ -22,45 +20,11 @@ export async function addElement(req: Request, res: Response, next: NextFunction
     } 
     if (isJWTPayload(auth, name)) {
       try {
-        switch (where) {
-          case "tried":
-            await UserDetail.updateOne({
-              name: name
-            }, {
-              $addToSet: {tried: problemId}
-            })
-            break
-          case "solved":
-            await UserDetail.updateOne({
-              name: name
-            }, {
-              $addToSet: {solved: problemId}
-            })
-            break
-          case "liked":
-            await UserDetail.updateOne({
-              name: name
-            }, {
-              $addToSet: {liked: problemId}
-            })
-            break
-          case "disliked":
-            await UserDetail.updateOne({
-              name: name
-            }, {
-              $addToSet: {disliked: problemId}
-            })
-            break
-          case "asked":
-            await UserDetail.updateOne({
-              name: name
-            }, {
-              $addToSet: {asked: problemId}
-            })
-            break
-          default:
-            break
-        }
+        await UserDetail.updateOne({
+          name: name
+        }, {
+          $addToSet: {[where]: element}
+        })
         res.status(200).send({respones: "added"})
       } catch (error) {
         next(error)
@@ -70,7 +34,7 @@ export async function addElement(req: Request, res: Response, next: NextFunction
 }
 
 export async function deleteElement(req: Request, res: Response, next: NextFunction) {
-  const problemId = req.body.problemId
+  const element = req.body.element
   const name = req.body.name
   const where = req.body.where
   const bearerHeader = req.headers["authorization"]
@@ -85,46 +49,12 @@ export async function deleteElement(req: Request, res: Response, next: NextFunct
     } 
     if (isJWTPayload(auth, name)) {
       try {
-        switch (where) {
-          case "tried":
-            await UserDetail.updateOne({
-              name: name
-            }, {
-              $pull: {tried: problemId}
-            })
-            break
-          case "solved":
-            await UserDetail.updateOne({
-              name: name
-            }, {
-              $pull: {solved: problemId}
-            })
-            break
-          case "liked":
-            await UserDetail.updateOne({
-              name: name
-            }, {
-              $pull: {liked: problemId}
-            })
-            break
-          case "disliked":
-            await UserDetail.updateOne({
-              name: name
-            }, {
-              $pull: {disliked: problemId}
-            })
-            break
-          case "asked":
-            await UserDetail.updateOne({
-              name: name
-            }, {
-              $addToSet: {asked: problemId}
-            })
-            break
-          default:
-            break
-        }
-        res.status(200).send({respones: "added"})
+        await UserDetail.updateOne({
+          name: name
+        }, {
+          $pull: {[where]: element}
+        })
+        res.status(200).send({respones: "deleted"})
       } catch (error) {
         next(error)
       }
@@ -154,7 +84,6 @@ export async function getAllCreators(req: Request, res: Response, next: NextFunc
 
 export async function changePoint(req: Request, res: Response, next: NextFunction) {
   const name: string = req.body.name
-  const operator: string = req.body.operator
   const point: number = req.body.point
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
@@ -168,20 +97,12 @@ export async function changePoint(req: Request, res: Response, next: NextFunctio
     } 
     if (isJWTPayload(auth, name)) {
       try {
-        switch(operator) {
-          case "add":
-            await UserDetail.updateOne({
-              name: name
-            }, {
-              $inc: {point: point}
-            })
-          case "sub":
-            await UserDetail.updateOne({
-              name: name
-            }, {
-              $inc: {point: -point}
-            })
-        }
+        await UserDetail.updateOne({
+          name: name
+        }, {
+          $set: {point: point}
+        })
+        res.status(200).json({ response: "updated" })
       } catch (error) {
         next(error)
       }
