@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { env } from "process";
 import { isJWTPayload } from "../util/helpers";
 
+
 export async function addElement(req: Request, res: Response, next: NextFunction) {
   const element = req.body.element
   const name = req.body.name
@@ -25,6 +26,13 @@ export async function addElement(req: Request, res: Response, next: NextFunction
         }, {
           $addToSet: {[where]: element}
         })
+        if (where === "followList") {
+          await UserDetail.updateOne({
+            name: element
+          }, {
+            $addToSet: {myFollowers: name}
+          })
+        }
         res.status(200).send({respones: "added"})
       } catch (error) {
         next(error)
@@ -100,7 +108,7 @@ export async function changePoint(req: Request, res: Response, next: NextFunctio
         await UserDetail.updateOne({
           name: name
         }, {
-          $set: {point: point}
+          $inc: {point: point}
         })
         res.status(200).json({ response: "updated" })
       } catch (error) {
@@ -108,4 +116,16 @@ export async function changePoint(req: Request, res: Response, next: NextFunctio
       }
     }
   })
+}
+
+export async function resetField(req: Request, res: Response, next: NextFunction) {
+  try {
+    await UserDetail.updateMany({}, {
+      $set: {
+        solved: [],
+      }
+    })
+  } catch (error) {
+    next(error)
+  }
 }

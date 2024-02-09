@@ -12,6 +12,8 @@ export interface UserDetail {
   liked: string[],
   disliked: string[],
   asked: string[],
+  myFollowers: string[],
+  followList: string[],
   loginTime: Date,
 }
 
@@ -53,10 +55,19 @@ const UserDetailSchema = new Schema<UserDetail>(
       type: [String],
       required: true,
     },
+    myFollowers: {
+      type: [String],
+      required: true,
+    },
+    followList: {
+      type: [String],
+      required: true,
+    },
     loginTime: {
       type: Date,
       required: false,
     },
+
   }
 )
 

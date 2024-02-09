@@ -4,11 +4,13 @@ import jwt from 'jsonwebtoken';
 import { env } from "process";
 import { isJWTPayload } from "../util/helpers";
 
+
 export async function changeCount(req: Request, res: Response, next: NextFunction) {
-  const problemId = req.body.problemId
-  const where = req.body.where
-  const name = req.body.name
-  const count = req.body.count
+  // const problemId = req.body.problemId
+  // const where = req.body.where
+  // const name = req.body.name
+  // const count = req.body.count
+  const {problemId, where, name, count} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -26,7 +28,7 @@ export async function changeCount(req: Request, res: Response, next: NextFunctio
         }, {
           $inc: {[where]: count}
         })
-        res.status(200).send({ response: "added" })
+        res.status(200).send({ response: "changed" })
       } catch (error) {
         next(error)
       }
@@ -84,4 +86,62 @@ export async function getReply(req: Request, res: Response, next: NextFunction) 
   } catch (error) {
     next(error)
   }
+}
+
+export async function addUsername(req: Request, res: Response, next: NextFunction) {
+  const problemId = req.body.problemId
+  const username = req.body.username
+  const where = req.body.where
+  const bearerHeader = req.headers["authorization"]
+  const secretKey = env.TOKEN_KEY?? ""
+  if (!bearerHeader) {
+    res.sendStatus(403)
+  }
+  const token = bearerHeader?.split(" ")[1]
+  jwt.verify(token?? "", secretKey, async (err, auth) => {
+    if (err) {
+      res.sendStatus(403)
+    } 
+    if (isJWTPayload(auth, username)) {
+      try {
+        await ProblemInformation.updateOne({
+          problemId: problemId
+        }, {
+          $addToSet: {[where]: username}
+        })
+        res.status(200).send({response: "Your reply has been registered"})
+      } catch (error) {
+        next(error)
+      }
+    }
+  })
+}
+
+export async function deleteUsername(req: Request, res: Response, next: NextFunction) {
+  const problemId = req.body.problemId
+  const username = req.body.username
+  const where = req.body.where
+  const bearerHeader = req.headers["authorization"]
+  const secretKey = env.TOKEN_KEY?? ""
+  if (!bearerHeader) {
+    res.sendStatus(403)
+  }
+  const token = bearerHeader?.split(" ")[1]
+  jwt.verify(token?? "", secretKey, async (err, auth) => {
+    if (err) {
+      res.sendStatus(403)
+    } 
+    if (isJWTPayload(auth, username)) {
+      try {
+        await ProblemInformation.updateOne({
+          problemId: problemId
+        }, {
+          $pull: {[where]: username}
+        })
+        res.status(200).send({response: "Your reply has been registered"})
+      } catch (error) {
+        next(error)
+      }
+    }
+  })
 }

@@ -5,10 +5,13 @@ export interface ProblemInformation {
   _id: Types.ObjectId,
   problemId: string,
   view: number,
-  like: number,
-  dislike: number,
+  liked: string[],
+  disliked: string[],
+  correctUser: string[],
   correct: number,
   wrong: number,
+  totalCorrectUserLevel: number,
+  totalWrongUserLevel: number,
   reply?: object[]
 }
 
@@ -22,12 +25,16 @@ const ProblemInformationSchema = new Schema<ProblemInformation>(
       type: Number,
       required: true,
     },
-    like: {
-      type: Number,
+    liked: {
+      type: [String],
       required: true,
     },
-    dislike: {
-      type: Number,
+    disliked: {
+      type: [String],
+      required: true,
+    },
+    correctUser: {
+      type: [String],
       required: true,
     },
     correct: {
@@ -35,6 +42,14 @@ const ProblemInformationSchema = new Schema<ProblemInformation>(
       required: true,
     },
     wrong: {
+      type: Number,
+      required: true,
+    },
+    totalCorrectUserLevel: {
+      type: Number,
+      required: true,
+    },
+    totalWrongUserLevel: {
       type: Number,
       required: true,
     },

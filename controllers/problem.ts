@@ -33,19 +33,21 @@ export async function createProblem(req: Request, res: Response, next: NextFunct
         await ProblemInformation.create({
           problemId: problemId,
           view: 0,
-          like: 0,
-          dislike: 0,
+          liked: [],
+          disliked: [],
+          correctUser: [],
           correct: 0,
+          totalCorrectUserLevel: 0,
+          totalWrongUserLevel: 0,
           wrong: 0,
           reply: [],
-          
+
         })
         await UserDetail.updateOne({
           name: creator
         }, {
           $addToSet: {created: problemId}
         })
-    
       res.status(200).send({
         response: "created",
         id: problemId,
@@ -93,7 +95,7 @@ export async function deleteProblem(req: Request, res: Response, next: NextFunct
 export async function getAllProblems(req: Request, res: Response, next: NextFunction) {
   // Problem db에 저장된 모든 문제의 정보를 반환
   try {
-    const allProblems = await Problem.find()
+    const allProblems = await Problem.find().sort({ time: -1 })
     res.status(200).json(allProblems)
   } catch (error) {
     next(error)
@@ -104,6 +106,7 @@ export async function getProblemsByCreator(req: Request, res: Response, next: Ne
   const creator = req.params.creator
   try {
     const problems = await Problem.find({ creator: creator })
+                                  .sort({ time: -1 })
     res.status(200).json(problems)
   } catch (error) {
     next(error)
@@ -114,6 +117,7 @@ export async function getProblemsByLevel(req: Request, res: Response, next: Next
   const level = req.params.level
   try {
     const problems = await Problem.find({ level: level })
+                                  .sort({ time: -1 })
     res.status(200).json(problems)
   } catch (error) {
     next(error)
@@ -125,6 +129,7 @@ export async function getProblemByIdList(req: Request, res: Response, next: Next
   const idList = problemIdList.split("&")
   try {
     const problemList = await Problem.find({ _id: {$in: idList}})
+                                      .sort({ time: -1 })
     res.status(200).json(problemList)
   } catch (error) {
     next(error)
@@ -166,7 +171,7 @@ export async function updateVariations(req: Request, res: Response, next: NextFu
         }, {
           new: true
         })
-        if (where === "questioins") {
+        if (where === "questions") {
           if (_.isEqual(newVariations, initialVariations)) {
             await UserDetail.updateOne({
               name: creator
@@ -181,7 +186,7 @@ export async function updateVariations(req: Request, res: Response, next: NextFu
             })
           }
         }
-        res.status(200).send({ response: "updated"})
+        res.status(200).send({ response: `updated ${where}`})
       } catch (error) {
         next(error)
       }
