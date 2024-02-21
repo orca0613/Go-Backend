@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "types": ["mongoose"],
+    "types": ["mongoose", "node"],
     "target": "es6",
     "module": "commonjs",
     "outDir": "./dist",
@@ -15,10 +15,6 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
 }
