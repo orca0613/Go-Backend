@@ -55,8 +55,7 @@ export async function checkDuplicateName(req: Request, res: Response, next: Next
 }
 
 export async function login(req: Request, res: Response, next: NextFunction) {
-  const email = req.body.email
-  const password = req.body.password
+  const {email, password} = req.body
   try {
     const user = await User.findOne({ email: email })
     if (!user) {
@@ -89,8 +88,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 }
 
 export async function deleteId(req: Request, res: Response, next: NextFunction) {
-  const id = req.body.id
-  const name = req.body.name
+  const {id, name} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -118,4 +116,3 @@ export async function deleteId(req: Request, res: Response, next: NextFunction) 
     }
   })
 }
-

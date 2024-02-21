@@ -4,7 +4,7 @@ import 'dotenv/config'
 
 // Mongoose setup
 mongoose.set('strictQuery', false);
-const PORT = 3001;
+const PORT = process.env.PORT || 8080;
 
 mongoose.connect(process.env.MONGO_URL ?? "").then(() => {
   App.listen(PORT, () => console.log(`Listening at server port: ${PORT}`));

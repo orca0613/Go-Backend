@@ -1,0 +1,4 @@
+runtime: nodejs18
+
+# https://cloud.google.com/appengine/docs/standard#instance_classes
+instance_class: F1

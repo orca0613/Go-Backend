@@ -6,9 +6,7 @@ import { isJWTPayload } from "../util/helpers";
 
 
 export async function addElement(req: Request, res: Response, next: NextFunction) {
-  const element = req.body.element
-  const name = req.body.name
-  const where = req.body.where
+  const {element, name, where} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -42,9 +40,7 @@ export async function addElement(req: Request, res: Response, next: NextFunction
 }
 
 export async function deleteElement(req: Request, res: Response, next: NextFunction) {
-  const element = req.body.element
-  const name = req.body.name
-  const where = req.body.where
+  const {element, name, where} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -90,9 +86,8 @@ export async function getAllCreators(req: Request, res: Response, next: NextFunc
   }
 }
 
-export async function changePoint(req: Request, res: Response, next: NextFunction) {
-  const name: string = req.body.name
-  const point: number = req.body.point
+export async function changeInfoAndPoint(req: Request, res: Response, next: NextFunction) {
+  const {name, point, problemId, where} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -108,7 +103,8 @@ export async function changePoint(req: Request, res: Response, next: NextFunctio
         await UserDetail.updateOne({
           name: name
         }, {
-          $inc: {point: point}
+          $inc: {point: point},
+          $addToSet:{[where]: problemId}
         })
         res.status(200).json({ response: "updated" })
       } catch (error) {
@@ -116,16 +112,4 @@ export async function changePoint(req: Request, res: Response, next: NextFunctio
       }
     }
   })
-}
-
-export async function resetField(req: Request, res: Response, next: NextFunction) {
-  try {
-    await UserDetail.updateMany({}, {
-      $set: {
-        solved: [],
-      }
-    })
-  } catch (error) {
-    next(error)
-  }
 }

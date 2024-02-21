@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { Problem } from "../models/Problem";
+import { Problem } from "../models/problem";
 import { ProblemInformation } from "../models/problemInformation";
 import { UserDetail } from "../models/userDetail";
 import jwt from 'jsonwebtoken';
@@ -63,8 +63,7 @@ export async function deleteProblem(req: Request, res: Response, next: NextFunct
   // Problem db에서 문제를 삭제하는 함수. 
   // 문제를 만들 때와 마찬가지로 ProblemInformation db와
   // UserDetail db에 대한 정보도 업데이트
-  const problemId = req.body.id
-  const creator = req.body.creator
+  const {problemId, creator} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -147,11 +146,7 @@ export async function getProblemById(req: Request, res: Response, next: NextFunc
 }
 
 export async function updateVariations(req: Request, res: Response, next: NextFunction) {
-  const id = req.body.problemId
-  const newVariations = req.body.variations
-  const where = req.body.where
-  const creator = req.body.creator
-  const name = req.body.name
+  const {problemId, variations, answers, questions, name, creator} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -165,28 +160,25 @@ export async function updateVariations(req: Request, res: Response, next: NextFu
     if (isJWTPayload(auth, name)) {
       try {
         await Problem.updateOne({
-          _id: id
+          _id: problemId
         }, {
-          $set: {[where]: newVariations}
+          $set: {variations: variations, answers: answers, questions: questions}
         }, {
           new: true
         })
-        if (where === "questions") {
-          if (_.isEqual(newVariations, initialVariations)) {
-            await UserDetail.updateOne({
-              name: creator
-            }, {
-              $pull: {withQuestions: id}
-            })
-          } else {
-            await UserDetail.updateOne({
-              name: creator
-            }, {
-              $addToSet: {withQuestions: id}
-            })
-          }
+        if (_.isEqual(questions, initialVariations)) {
+          await UserDetail.updateOne({
+            name: creator
+          }, {
+            $pull: {withQuestions: problemId}
+          })
+        } else {
+          await UserDetail.updateOne({
+            name: creator
+          }, {
+            $addToSet: {withQuestions: problemId}
+          })
         }
-        res.status(200).send({ response: `updated ${where}`})
       } catch (error) {
         next(error)
       }
@@ -195,12 +187,7 @@ export async function updateVariations(req: Request, res: Response, next: NextFu
 }
 
 export async function modifyProblem(req: Request, res: Response, next: NextFunction) {
-  const creator = req.body.creator
-  const id = req.body.problemId
-  const initialState = req.body.initialState
-  const comment = req.body.comment
-  const level = req.body.level
-  const color = req.body.color
+  const {creator, problemId, initialState, comment, level, color} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -214,7 +201,7 @@ export async function modifyProblem(req: Request, res: Response, next: NextFunct
     if (isJWTPayload(auth, creator)) {
       try {
         const update = await Problem.findOneAndUpdate({
-          _id: id
+          _id: problemId
         }, {
           $set: {
             initialState: initialState,
