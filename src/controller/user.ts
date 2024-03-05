@@ -1,6 +1,6 @@
 import { Request, Response,  NextFunction} from "express";
 import { User } from "../models/user";
-import { comparePassword, hashPassword, isJWTPayload } from "../util/helpers";
+import { comparePassword, hashPassword, isJWTPayload, sendVerifyMail } from "../util/helpers";
 import { isValidObjectId } from "mongoose";
 import createHttpError from "http-errors";
 import { UserDetail } from "../models/userDetail"
@@ -8,19 +8,22 @@ import jwt from 'jsonwebtoken';
 import { env } from "process";
 
 export async function createUser(req: Request, res: Response, next: NextFunction) {
-  const password = req.body.password
+  const { email, password } = req.body
   const hashed = await hashPassword(password)
   try {
     const newUser = await User.create({
       ...req.body,
       password: hashed,
+      verify: false,
       time: new Date(),
+
     })
     const newUserDetail = await UserDetail.create({
       name: newUser.name,
       point: 1000,
     });
     res.status(200).send({response: "Sign up completed"})
+    sendVerifyMail(email, newUser._id)
   } catch (error) {
     next(error)
   }
@@ -60,6 +63,8 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     const user = await User.findOne({ email: email })
     if (!user) {
       res.status(400).send({response: "Not exist email"})
+    } else if (!user.verify) {
+      res.status(400).send({response: "인증이 완료되지 않았습니다."})
     } else {
       const match = await comparePassword(password, user.password)
       if (match) {
@@ -78,6 +83,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
           $currentDate: {loginTime: 1}
         })
         res.status(200).json(response)
+
       } else {
         res.status(400).send({response: "Wrong password"})
       }
@@ -115,4 +121,16 @@ export async function deleteId(req: Request, res: Response, next: NextFunction) 
       }
     }
   })
+}
+
+export async function verifyMail(req: Request, res: Response, next: NextFunction) {
+  const userId = req.params.userId
+  const update = await User.findByIdAndUpdate(userId, {
+    $set: {verify: true}
+  })
+  if (update) {
+    res.status(200).json({ verify: true })
+  } else {
+    res.status(400).json({ verify: false })
+  }
 }

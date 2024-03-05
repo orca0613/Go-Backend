@@ -46,7 +46,7 @@ export async function createProblem(req: Request, res: Response, next: NextFunct
         await UserDetail.updateOne({
           name: creator
         }, {
-          $addToSet: {created: problemId}
+          $addToSet: {created: problemId, tried: problemId}
         })
       res.status(200).send({
         response: "created",
@@ -125,7 +125,7 @@ export async function getProblemsByLevel(req: Request, res: Response, next: Next
 
 export async function getProblemByIdList(req: Request, res: Response, next: NextFunction) {
   const problemIdList = req.params.problemIdList
-  const idList = problemIdList.split("&")
+  const idList = JSON.parse(problemIdList)
   try {
     const problemList = await Problem.find({ _id: {$in: idList}})
                                       .sort({ time: -1 })
@@ -146,7 +146,7 @@ export async function getProblemById(req: Request, res: Response, next: NextFunc
 }
 
 export async function updateVariations(req: Request, res: Response, next: NextFunction) {
-  const {problemId, variations, answers, questions, name, creator} = req.body
+  const {problemId, where, variations, name, creator} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -162,22 +162,24 @@ export async function updateVariations(req: Request, res: Response, next: NextFu
         await Problem.updateOne({
           _id: problemId
         }, {
-          $set: {variations: variations, answers: answers, questions: questions}
+          $set: {[where]: variations}
         }, {
           new: true
         })
-        if (_.isEqual(questions, initialVariations)) {
-          await UserDetail.updateOne({
-            name: creator
-          }, {
-            $pull: {withQuestions: problemId}
-          })
-        } else {
-          await UserDetail.updateOne({
-            name: creator
-          }, {
-            $addToSet: {withQuestions: problemId}
-          })
+        if (where === "questions") {
+          if (_.isEqual(variations, initialVariations)) {
+            await UserDetail.updateOne({
+              name: creator
+            }, {
+              $pull: {withQuestions: problemId}
+            })
+          } else {
+            await UserDetail.updateOne({
+              name: creator
+            }, {
+              $addToSet: {withQuestions: problemId}
+            })
+          }
         }
       } catch (error) {
         next(error)

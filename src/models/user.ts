@@ -7,6 +7,7 @@ export interface User {
   password: string,
   name: string,
   level: number,
+  verify: boolean,
   time: Date,
 }
 
@@ -28,6 +29,10 @@ const UserSchema = new Schema<User>(
     },
     level: {
       type: Number,
+      required: true,
+    },
+    verify: {
+      type: Boolean,
       required: true,
     },
     time: {
