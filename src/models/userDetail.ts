@@ -15,6 +15,7 @@ export interface UserDetail {
   myFollowers: string[],
   followList: string[],
   loginTime: Date,
+  language: number,
 }
 
 const UserDetailSchema = new Schema<UserDetail>(
@@ -67,7 +68,10 @@ const UserDetailSchema = new Schema<UserDetail>(
       type: Date,
       required: false,
     },
-
+    language: {
+      type: Number,
+      required: true,
+    },
   }
 )
 

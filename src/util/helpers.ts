@@ -45,11 +45,14 @@ export function isJWTPayload(auth: any, name: string) {
 }
 
 export function sendVerifyMail(email: string, userId: Types.ObjectId) {
+  const emailBody = `
+  <p>안녕하세요, 인증 링크를 클릭하여 계정을 활성화하세요:</p>
+  <a href="https://go-problem-test.web.app/verify/${userId}">인증하기</a>`
   const mailOptions = {
     from: process.env.EMAIL,
     to: email,
     subject: '이메일 인증',
-    text: `이메일을 인증하려면 클릭하세요: <a href="https://go-problem-test.web.app/verify/${userId}"></a>`
+    html: emailBody
   };
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {

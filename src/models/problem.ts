@@ -3,7 +3,7 @@ import { PROBLEM } from "../util/constants";
 
 export interface Problem {
   _id: Types.ObjectId,
-  initialState: string,
+  initialState: string[][],
   variations: object,
   answers: object,
   questions: object,
@@ -17,7 +17,7 @@ export interface Problem {
 const ProblemSchema = new Schema<Problem>(
   {
     initialState: {
-      type: String,
+      type: [[String]],
       required: true,
     },
     variations: {

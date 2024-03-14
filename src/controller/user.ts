@@ -2,13 +2,12 @@ import { Request, Response,  NextFunction} from "express";
 import { User } from "../models/user";
 import { comparePassword, hashPassword, isJWTPayload, sendVerifyMail } from "../util/helpers";
 import { isValidObjectId } from "mongoose";
-import createHttpError from "http-errors";
 import { UserDetail } from "../models/userDetail"
 import jwt from 'jsonwebtoken';
 import { env } from "process";
 
 export async function createUser(req: Request, res: Response, next: NextFunction) {
-  const { email, password } = req.body
+  const { email, password, language } = req.body
   const hashed = await hashPassword(password)
   try {
     const newUser = await User.create({
@@ -20,10 +19,11 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     })
     const newUserDetail = await UserDetail.create({
       name: newUser.name,
-      point: 1000,
+      point: 10000,
+      language: language
     });
-    res.status(200).send({response: "Sign up completed"})
     sendVerifyMail(email, newUser._id)
+    res.sendStatus(201)
   } catch (error) {
     next(error)
   }
@@ -33,11 +33,7 @@ export async function checkDuplicateEmail(req: Request, res: Response, next: Nex
   const email = req.params.email
   try {
     const user = await User.findOne({ email: email })
-    if (!user) {
-      res.status(200).json({ duplicate: false })
-    } else if (user) {
-      res.status(400).json({ duplicate: true })
-    }
+    res.status(200).json(user? true : false)
   } catch (error) {
     next(error)
   }
@@ -47,11 +43,7 @@ export async function checkDuplicateName(req: Request, res: Response, next: Next
   const name = req.params.name
   try {
     const user = await User.findOne({ name: name })
-    if (!user) {
-      res.status(200).json({ duplicate: false })
-    } else if (user) {
-      res.status(400).json({ duplicate: true })
-    }
+    res.status(200).json(user? true : false)
   } catch (error) {
     next(error)
   }
@@ -62,9 +54,10 @@ export async function login(req: Request, res: Response, next: NextFunction) {
   try {
     const user = await User.findOne({ email: email })
     if (!user) {
-      res.status(400).send({response: "Not exist email"})
+      return res.sendStatus(404)
     } else if (!user.verify) {
-      res.status(400).send({response: "인증이 완료되지 않았습니다."})
+      sendVerifyMail(email, user._id)
+      return res.sendStatus(403)
     } else {
       const match = await comparePassword(password, user.password)
       if (match) {
@@ -83,9 +76,8 @@ export async function login(req: Request, res: Response, next: NextFunction) {
           $currentDate: {loginTime: 1}
         })
         res.status(200).json(response)
-
       } else {
-        res.status(400).send({response: "Wrong password"})
+        res.sendStatus(400)
       }
     }
   } catch (error) {
@@ -98,39 +90,64 @@ export async function deleteId(req: Request, res: Response, next: NextFunction) 
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
-    res.sendStatus(403)
+    return res.sendStatus(401)
   }
   const token = bearerHeader?.split(" ")[1]
-  jwt.verify(token?? "", secretKey, async (err, auth) => {
-    if (err) {
-      res.sendStatus(403)
+  try {
+    const auth = await new Promise((resolve, reject) => {
+      jwt.verify(token, secretKey, (err, decoded) => {
+        if (err) {
+          return res.sendStatus(401);
+        } 
+        resolve(decoded);
+      });
+    });
+    if (!isJWTPayload(auth, name)) {
+      return res.sendStatus(403);
     }
-    if (isJWTPayload(auth, name)) {
-      try {
-        if (!isValidObjectId(id)) {
-          throw createHttpError(404, "Incorrect user ID provided")
-        }
-        const problem = await User.findByIdAndDelete(id)
-        if (!problem) {
-          throw createHttpError(400, "User not found")
-        } else {
-          res.status(200).send(`Deleted ${id}`)
-        }
-      } catch (error) {
-        next(error)
-      }
+    if (!isValidObjectId(id)) {
+      return res.sendStatus(400)
     }
-  })
+    const result = await User.findByIdAndDelete(id)
+    if (!result) {
+      return res.sendStatus(404)
+    } else {
+      res.sendStatus(200)
+    }
+  } catch (error) {
+    next(error)
+  }
 }
 
 export async function verifyMail(req: Request, res: Response, next: NextFunction) {
   const userId = req.params.userId
-  const update = await User.findByIdAndUpdate(userId, {
-    $set: {verify: true}
-  })
-  if (update) {
-    res.status(200).json({ verify: true })
-  } else {
-    res.status(400).json({ verify: false })
+  try {
+    const update = await User.findByIdAndUpdate(userId, {
+      $set: {verify: true}
+    })
+    if (update) {
+      res.sendStatus(204)
+    } else {
+      res.sendStatus(404)
+    }
+  } catch (error) {
+    next(error)
+  }
+}
+
+export async function changePassword(req: Request, res: Response, next: NextFunction) {
+  const {id, password} = req.body
+  const hashed = await hashPassword(password)
+  try {
+    const update = await User.findByIdAndUpdate(id, {
+      $set: {password: hashed}
+    })
+    if (update) {
+      res.sendStatus(204)
+    } else {
+      res.sendStatus(404)
+    }
+  } catch (error) {
+    next(error)
   }
 }
