@@ -1,15 +1,15 @@
 import express from "express"
-import { createProblem, deleteProblem, getProblemById, modifyProblem, updateVariations } from "../controller/problem"
+import { createProblem, deleteProblem, getProblemByIdx, modifyProblem, updateVariations } from "../controller/problem"
 
-const router = express.Router()
+const problemRouter = express.Router()
 
-router.post("/create", createProblem)
+problemRouter.post("/create", createProblem)
 
-router.delete("/delete", deleteProblem)
+problemRouter.delete("/delete", deleteProblem)
 
-router.get("/get-by-id/:problemId", getProblemById)
+problemRouter.get("/get-by-idx/:problemIdx", getProblemByIdx)
 
-router.patch("/update-variations", updateVariations)
-router.patch("/modify-problem", modifyProblem)
+problemRouter.patch("/update-variations", updateVariations)
+problemRouter.patch("/modify-problem", modifyProblem)
 
-export default router
+export default problemRouter

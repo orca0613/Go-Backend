@@ -28,9 +28,12 @@ export async function createProblem(req: Request, res: Response, next: NextFunct
     if (!isJWTPayload(auth, creator)) {
       return res.sendStatus(403);
     }
+    const lastProblem = await Problem.find().sort({problemIdx: -1}).limit(1)
+    const newIdx = lastProblem[0].problemIdx + 1
     const newProblem = await Problem.create({
       ...req.body,
       time: new Date(),
+      problemIdx: newIdx
     });
     const problemId = String(newProblem._id);
     await Promise.all([
@@ -47,12 +50,12 @@ export async function createProblem(req: Request, res: Response, next: NextFunct
         totalCorrectUserLevel: 0,
         totalWrongUserLevel: 0,
         wrong: 0,
-        reply: [],
         time: new Date(),
+        problemIndex: newIdx
       }),
       UserDetail.updateOne(
         { name: creator },
-        { $addToSet: { created: problemId, tried: problemId } }
+        { $addToSet: { created: newIdx, tried: newIdx } }
       ),
     ]);
     res.sendStatus(201);
@@ -65,7 +68,7 @@ export async function deleteProblem(req: Request, res: Response, next: NextFunct
   // Problem db에서 문제를 삭제하는 함수. 
   // 문제를 만들 때와 마찬가지로 ProblemInformation db와
   // UserDetail db에 대한 정보도 업데이트
-  const {problemId, creator} = req.body
+  const {problemIdx, creator} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -85,12 +88,12 @@ export async function deleteProblem(req: Request, res: Response, next: NextFunct
       return res.sendStatus(403);
     }
     await Promise.all([
-      Problem.findByIdAndDelete(problemId),
-      ProblemInformation.findOneAndDelete({problemId: problemId}),
+      Problem.findOneAndDelete({problemIdx: problemIdx}),
+      ProblemInformation.findOneAndDelete({problemIndex: problemIdx}),
       UserDetail.updateOne({
         name: creator
       }, {
-        $pull: {created: problemId, withQuestions: problemId}
+        $pull: {created: problemIdx, withQuestions: problemIdx}
       })
     ])
     res.sendStatus(204)
@@ -99,10 +102,10 @@ export async function deleteProblem(req: Request, res: Response, next: NextFunct
   }
 }
 
-export async function getProblemById(req: Request, res: Response, next: NextFunction) {
-  const problemId = req.params.problemId
+export async function getProblemByIdx(req: Request, res: Response, next: NextFunction) {
+  const problemIdx = Number(req.params.problemIdx)
   try {
-    const problem = await Problem.findById(problemId)
+    const problem = await Problem.findOne({problemIdx: problemIdx})
     res.status(200).json(problem)
   } catch (error) {
     next(error)
@@ -110,7 +113,7 @@ export async function getProblemById(req: Request, res: Response, next: NextFunc
 }
 
 export async function updateVariations(req: Request, res: Response, next: NextFunction) {
-  const {problemId, where, variations, name, creator} = req.body
+  const {problemIdx, where, variations, name, creator} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -130,7 +133,7 @@ export async function updateVariations(req: Request, res: Response, next: NextFu
       return res.sendStatus(403);
     }
     const update = await Problem.updateOne({
-      _id: problemId
+      problemIdx: problemIdx
     }, {
       $set: {[where]: variations}
     }, {
@@ -141,13 +144,13 @@ export async function updateVariations(req: Request, res: Response, next: NextFu
         await UserDetail.updateOne({
           name: creator
         }, {
-          $pull: {withQuestions: problemId}
+          $pull: {withQuestions: problemIdx}
         })
       } else {
         await UserDetail.updateOne({
           name: creator
         }, {
-          $addToSet: {withQuestions: problemId}
+          $addToSet: {withQuestions: problemIdx}
         })
       }
     }
@@ -158,7 +161,7 @@ export async function updateVariations(req: Request, res: Response, next: NextFu
 }
 
 export async function modifyProblem(req: Request, res: Response, next: NextFunction) {
-  const {creator, problemId, initialState, comment, level, color} = req.body
+  const {creator, problemIdx, initialState, comment, level, color} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -179,7 +182,7 @@ export async function modifyProblem(req: Request, res: Response, next: NextFunct
     }
     await Promise.all([
       Problem.findOneAndUpdate({
-        _id: problemId
+        problemIdx: problemIdx
       }, {
         $set: {
           initialState: initialState,
@@ -191,7 +194,7 @@ export async function modifyProblem(req: Request, res: Response, next: NextFunct
         new: true
       }),
       ProblemInformation.findOneAndUpdate({
-        problemId: problemId
+        problemIndex: problemIdx
       }, {
         $set: {
           initialState: initialState,

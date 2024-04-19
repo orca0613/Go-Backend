@@ -4,6 +4,7 @@ import { PROBLEM_INFORMATION } from "../util/constants";
 export interface ProblemInformation {
   _id: Types.ObjectId,
   problemId: string,
+  problemIndex: number,
   initialState: string[][]
   level: number,
   creator: string,
@@ -15,7 +16,6 @@ export interface ProblemInformation {
   wrong: number,
   totalCorrectUserLevel: number,
   totalWrongUserLevel: number,
-  reply?: object[],
   time: Date,
 }
 
@@ -23,6 +23,10 @@ const ProblemInformationSchema = new Schema<ProblemInformation>(
   {
     problemId: {
       type: String,
+      required: true,
+    },
+    problemIndex: {
+      type: Number,
       required: true,
     },
     initialState: {
@@ -68,9 +72,6 @@ const ProblemInformationSchema = new Schema<ProblemInformation>(
     totalWrongUserLevel: {
       type: Number,
       required: true,
-    },
-    reply: {
-      type: [Object],
     },
     time: {
       type: Date,

@@ -1,13 +1,13 @@
 import express from "express";
-import { changeInfoAndPoint, addElement, deleteElement, getAllCreators, getUserDetail } from "../controller/userDetail";
+import { addElement, deleteElement, getAllCreators, getUserDetail, changeSetting } from "../controller/userDetail";
 
-const router = express.Router()
+const userDetailRouter = express.Router()
 
-router.patch("/add-element", addElement)
-router.patch("/delete-element", deleteElement)
-router.patch("/change", changeInfoAndPoint)
+userDetailRouter.patch("/add-element", addElement)
+userDetailRouter.patch("/delete-element", deleteElement)
+userDetailRouter.patch("/setting", changeSetting)
 
-router.get("/get/:name", getUserDetail)
-router.get("/get-creators", getAllCreators)
+userDetailRouter.get("/get/:name", getUserDetail)
+userDetailRouter.get("/get-creators", getAllCreators)
 
-export default router
+export default userDetailRouter

@@ -1,12 +1,18 @@
 import app from "./util/middlewareApp";
-import problemRoutes from "./routes/problem"
-import userRoutes from "./routes/user"
-import problemInformationRoutes from "./routes/problemInformation"
-import userDetailRoutes from "./routes/userDetail"
+import problemRouter from "./routes/problem"
+import userRouter from "./routes/user"
+import problemInformationRouter from "./routes/problemInformation"
+import userDetailRouter from "./routes/userDetail"
+import replyRouter from "./routes/reply";
+import messageRouter from "./routes/message";
+import requestsRouter from "./routes/requests";
 
 export default app
 
-app.use("/problems", problemRoutes)
-app.use("/users", userRoutes)
-app.use("/problem-info", problemInformationRoutes)
-app.use("/user-detail", userDetailRoutes)
+app.use("/problems", problemRouter)
+app.use("/users", userRouter)
+app.use("/problem-info", problemInformationRouter)
+app.use("/user-detail", userDetailRouter)
+app.use("/reply", replyRouter)
+app.use("/message", messageRouter)
+app.use("/requests", requestsRouter)

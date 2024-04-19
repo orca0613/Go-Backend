@@ -1,6 +1,6 @@
 import { Request, Response,  NextFunction} from "express";
 import { User } from "../models/user";
-import { comparePassword, hashPassword, isJWTPayload, sendVerifyMail } from "../util/helpers";
+import { comparePassword, hashPassword, isJWTPayload, sendResetPasswordMail, sendVerifyMail } from "../util/helpers";
 import { isValidObjectId } from "mongoose";
 import { UserDetail } from "../models/userDetail"
 import jwt from 'jsonwebtoken';
@@ -14,15 +14,15 @@ export async function createUser(req: Request, res: Response, next: NextFunction
       ...req.body,
       password: hashed,
       verify: false,
+      language: language,
       time: new Date(),
-
     })
     const newUserDetail = await UserDetail.create({
       name: newUser.name,
       point: 10000,
-      language: language
+      auto: false,
     });
-    sendVerifyMail(email, newUser._id)
+    sendVerifyMail(email, newUser._id, language)
     res.sendStatus(201)
   } catch (error) {
     next(error)
@@ -50,13 +50,13 @@ export async function checkDuplicateName(req: Request, res: Response, next: Next
 }
 
 export async function login(req: Request, res: Response, next: NextFunction) {
-  const {email, password} = req.body
+  const {email, password, languageIdx} = req.body
   try {
     const user = await User.findOne({ email: email })
     if (!user) {
       return res.sendStatus(404)
     } else if (!user.verify) {
-      sendVerifyMail(email, user._id)
+      sendVerifyMail(email, user._id, languageIdx)
       return res.sendStatus(403)
     } else {
       const match = await comparePassword(password, user.password)
@@ -69,6 +69,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
           name: user.name,
           level: user.level,
           token: token,
+          language: user.language
         }
         await UserDetail.updateOne({
           name: user.name
@@ -147,6 +148,41 @@ export async function changePassword(req: Request, res: Response, next: NextFunc
     } else {
       res.sendStatus(404)
     }
+  } catch (error) {
+    next(error)
+  }
+}
+
+export async function checkPasswordAndReturnId(req: Request, res: Response, next: NextFunction) {
+  const info = req.params.info
+  const [name, password] = info.split(" ")
+  try {
+    const user = await User.findOne({name: name})
+    if (!user) {
+      return res.sendStatus(404)
+    }
+    const match = await comparePassword(password, user.password)
+    if (!match) {
+      return res.sendStatus(401)
+    }
+    res.status(200).json({
+      id: user._id
+    })
+
+  } catch (error) {
+    next(error)
+  }
+}
+
+export async function checkEmailAndSendUrl(req: Request, res: Response, next: NextFunction) {
+  const email = req.params.email
+  try {
+    const user = await User.findOne({email: email})
+    if (!user) {
+      return res.sendStatus(404)
+    }
+    sendResetPasswordMail(email, user._id, user.language)
+    res.sendStatus(200)
   } catch (error) {
     next(error)
   }

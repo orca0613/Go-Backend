@@ -8,6 +8,7 @@ export interface User {
   name: string,
   level: number,
   verify: boolean,
+  language: number,
   time: Date,
 }
 
@@ -33,6 +34,10 @@ const UserSchema = new Schema<User>(
     },
     verify: {
       type: Boolean,
+      required: true,
+    },
+    language: {
+      type: Number,
       required: true,
     },
     time: {

@@ -5,17 +5,17 @@ export interface UserDetail {
   _id: Types.ObjectId,
   name: string,
   point: number,
-  created: string[],
-  withQuestions: string[],
-  tried: string[],
-  solved: string[],
-  liked: string[],
-  disliked: string[],
-  asked: string[],
+  created: number[],
+  withQuestions: number[],
+  tried: number[],
+  solved: number[],
+  liked: number[],
+  disliked: number[],
+  asked: number[],
   myFollowers: string[],
   followList: string[],
   loginTime: Date,
-  language: number,
+  auto: boolean,
 }
 
 const UserDetailSchema = new Schema<UserDetail>(
@@ -29,31 +29,31 @@ const UserDetailSchema = new Schema<UserDetail>(
       required: true,
     },
     created: {
-      type: [String],
+      type: [Number],
       required: true,
     },
     withQuestions: {
-      type: [String],
+      type: [Number],
       required: true,
     },
     tried: {
-      type: [String],
+      type: [Number],
       required: true,
     },
     solved: {
-      type: [String],
+      type: [Number],
       required: true,
     },
     liked: {
-      type: [String],
+      type: [Number],
       required: true,
     },
     disliked: {
-      type: [String],
+      type: [Number],
       required: true,
     },
     asked: {
-      type: [String],
+      type: [Number],
       required: true,
     },
     myFollowers: {
@@ -68,8 +68,8 @@ const UserDetailSchema = new Schema<UserDetail>(
       type: Date,
       required: false,
     },
-    language: {
-      type: Number,
+    auto: {
+      type: Boolean,
       required: true,
     },
   }

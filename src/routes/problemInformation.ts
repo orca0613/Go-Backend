@@ -1,22 +1,18 @@
 import express from "express"
-import { addCorrectUser, addReply, addUsername, addWrong, changeCount, deleteUsername, getAllProblems, getProblemByIdList, getProblemByFilter, getProblemInformations, getProblemsByCreator, getProblemsByLevel, getRecommendedProblem, getReply } from "../controller/problemInformation"
+import { addCorrectUser, addUsername, addWrong, changeCount, deleteUsername, getProblemByIndexList, getProblemByFilter, getProblemInformations, getRecommendedProblem, deleteReply } from "../controller/problemInformation"
 
-const router = express.Router()
+const problemInformationRouter = express.Router()
 
-router.patch("/change-count", changeCount)
-router.patch("/add-reply", addReply)
-router.patch("/add-name", addUsername)
-router.patch("/delete-name", deleteUsername)
-router.patch("/add-correct", addCorrectUser)
-router.patch("/add-wrong", addWrong)
+problemInformationRouter.patch("/change-count", changeCount)
+problemInformationRouter.patch("/add-name", addUsername)
+problemInformationRouter.patch("/delete-name", deleteUsername)
+problemInformationRouter.patch("/add-correct", addCorrectUser)
+problemInformationRouter.patch("/add-wrong", addWrong)
+problemInformationRouter.patch("/delete", deleteReply)
 
-router.get("/get/:problemId", getProblemInformations)
-router.get("/get-reply/:problemId", getReply)
-router.get("/get-recommended", getRecommendedProblem)
-router.get("/get-all", getAllProblems)
-router.get("/get-by-creator/:creator", getProblemsByCreator)
-router.get("/get-by-level/:level", getProblemsByLevel)
-router.get("/get-by-id-list/:problemIdList", getProblemByIdList)
-router.get("/get-by-filter/:info", getProblemByFilter)
+problemInformationRouter.get("/get/:problemIdx", getProblemInformations)
+problemInformationRouter.get("/get-recommended", getRecommendedProblem)
+problemInformationRouter.get("/get-by-idx-list/:problemIndexList", getProblemByIndexList)
+problemInformationRouter.get("/get-by-filter/:filter", getProblemByFilter)
 
-export default router
+export default problemInformationRouter

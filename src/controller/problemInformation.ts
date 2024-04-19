@@ -2,10 +2,10 @@ import { NextFunction, Request, Response } from "express";
 import { ProblemInformation } from "../models/problemInformation";
 import jwt from 'jsonwebtoken';
 import { env } from "process";
-import { isJWTPayload } from "../util/helpers";
+import { isJWTPayload, ownParse } from "../util/helpers";
 
 export async function changeCount(req: Request, res: Response, next: NextFunction) {
-  const {problemId, where, name, count} = req.body
+  const {problemIdx, where, name, count} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -25,7 +25,7 @@ export async function changeCount(req: Request, res: Response, next: NextFunctio
       return res.sendStatus(403);
     }
     const update = await ProblemInformation.updateOne({
-      problemId: problemId
+      problemIndex: problemIdx
     }, {
       $inc: {[where]: count}
     })
@@ -38,9 +38,9 @@ export async function changeCount(req: Request, res: Response, next: NextFunctio
 
 
 export async function getProblemInformations(req: Request, res: Response, next: NextFunction) {
-  const problemId = req.params.problemId
+  const problemIdx = Number(req.params.problemIdx)
   try {
-    const info = await ProblemInformation.findOne({problemId: problemId})
+    const info = await ProblemInformation.findOne({problemIndex: problemIdx})
     if (!info) {
       return res.sendStatus(404)
     }
@@ -60,30 +60,10 @@ export async function getRecommendedProblem(req: Request, res: Response, next: N
   res.status(200).json(problemList)
 }
 
-export async function addReply(req: Request, res: Response, next: NextFunction) {
-  const {problemId, reply, name} = req.body
-  const bearerHeader = req.headers["authorization"]
-  const secretKey = env.TOKEN_KEY?? ""
-  if (!bearerHeader) {
-    return res.sendStatus(401)
-  }
-  const token = bearerHeader?.split(" ")[1]
+export async function deleteReply(req: Request, res: Response, next: NextFunction) {
   try {
-    const auth = await new Promise((resolve, reject) => {
-      jwt.verify(token, secretKey, (err, decoded) => {
-        if (err) {
-          return res.sendStatus(401);
-        } 
-        resolve(decoded);
-      });
-    });
-    if (!isJWTPayload(auth, name)) {
-      return res.sendStatus(403);
-    }
-    await ProblemInformation.updateOne({
-      problemId: problemId
-    }, {
-      $push: {reply: reply}
+    await ProblemInformation.updateMany({}, {
+      $unset: {reply: ""}
     })
     res.sendStatus(204)
   } catch (error) {
@@ -91,18 +71,9 @@ export async function addReply(req: Request, res: Response, next: NextFunction) 
   }
 }
 
-export async function getReply(req: Request, res: Response, next: NextFunction) {
-  const problemId = req.params.problemId
-  try {
-    const problem = await ProblemInformation.findOne({problemId: problemId})
-    res.status(200).json(problem?.reply)
-  } catch (error) {
-    next(error)
-  }
-}
 
 export async function addUsername(req: Request, res: Response, next: NextFunction) {
-  const {problemId, username, where} = req.body
+  const {problemIdx, username, where} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -122,7 +93,7 @@ export async function addUsername(req: Request, res: Response, next: NextFunctio
       return res.sendStatus(403);
     }
     await ProblemInformation.updateOne({
-      problemId: problemId
+      problemIndex: problemIdx
     }, {
       $addToSet: {[where]: username}
     })
@@ -133,7 +104,7 @@ export async function addUsername(req: Request, res: Response, next: NextFunctio
 }
 
 export async function deleteUsername(req: Request, res: Response, next: NextFunction) {
-  const {problemId, username, where} = req.body
+  const {problemIdx, username, where} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -153,7 +124,7 @@ export async function deleteUsername(req: Request, res: Response, next: NextFunc
       return res.sendStatus(403);
     }
     await ProblemInformation.updateOne({
-      problemId: problemId
+      problemIndex: problemIdx
     }, {
       $pull: {[where]: username}
     })
@@ -226,43 +197,11 @@ export async function addWrong(req: Request, res: Response, next: NextFunction) 
   }
 }
 
-export async function getAllProblems(req: Request, res: Response, next: NextFunction) {
-  // Problem db에 저장된 모든 문제의 정보를 반환
+export async function getProblemByIndexList(req: Request, res: Response, next: NextFunction) {
+  const problemIndexdList = req.params.problemIndexList
+  const indexList = JSON.parse(problemIndexdList)
   try {
-    const allProblems = await ProblemInformation.find().sort({ time: 1 })
-    res.status(200).json(allProblems)
-  } catch (error) {
-    next(error)
-  }
-}
-
-export async function getProblemsByCreator(req: Request, res: Response, next: NextFunction) {
-  const creator = req.params.creator
-  try {
-    const problems = await ProblemInformation.find({ creator: creator })
-                                  .sort({ time: 1 })
-    res.status(200).json(problems)
-  } catch (error) {
-    next(error)
-  }
-}
-
-export async function getProblemsByLevel(req: Request, res: Response, next: NextFunction) {
-  const level = req.params.level
-  try {
-    const problems = await ProblemInformation.find({ level: level })
-                                  .sort({ time: 1 })
-    res.status(200).json(problems)
-  } catch (error) {
-    next(error)
-  }
-}
-
-export async function getProblemByIdList(req: Request, res: Response, next: NextFunction) {
-  const problemIdList = req.params.problemIdList
-  const idList = JSON.parse(problemIdList)
-  try {
-    const problemList = await ProblemInformation.find({problemId: {$in: idList}})
+    const problemList = await ProblemInformation.find({problemIndex: {$in: indexList}})
                                       .sort({ time: 1 })
     res.status(200).json(problemList)
   } catch (error) {
@@ -271,7 +210,8 @@ export async function getProblemByIdList(req: Request, res: Response, next: Next
 }
 
 export async function getProblemByFilter(req: Request, res: Response, next: NextFunction) {
-  const info = JSON.parse(req.params.info)
+  const filter: string = req.params.filter
+  const info = ownParse(filter)
   try {
     const problemList = await ProblemInformation.find({level: {$gt: info.low, $lt: info.high}, creator: info.creator? info.creator : {$type: "string"}})
                                                 .sort({ time: 1 })

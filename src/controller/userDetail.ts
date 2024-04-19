@@ -3,10 +3,13 @@ import { UserDetail } from "../models/userDetail";
 import jwt from 'jsonwebtoken';
 import { env } from "process";
 import { isJWTPayload } from "../util/helpers";
+import { User } from "../models/user";
+import _ from "lodash";
 
 
 export async function addElement(req: Request, res: Response, next: NextFunction) {
   const {element, name, where} = req.body
+  const bonus = where === "solved"? 100 : 0
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -28,13 +31,14 @@ export async function addElement(req: Request, res: Response, next: NextFunction
     await UserDetail.updateOne({
       name: name
     }, {
-      $addToSet: {[where]: element}
+      $addToSet: {[where]: element},
+      $inc: {point: bonus}
     })
     if (where === "followList") {
       await UserDetail.updateOne({
         name: element
       }, {
-        $addToSet: {myFollowers: name}
+        $addToSet: {myFollowers: name},
       })
     }
     res.sendStatus(204)
@@ -100,8 +104,8 @@ export async function getAllCreators(req: Request, res: Response, next: NextFunc
   }
 }
 
-export async function changeInfoAndPoint(req: Request, res: Response, next: NextFunction) {
-  const {name, point, problemId, where} = req.body
+export async function changeSetting(req: Request, res: Response, next: NextFunction) {
+  const {username, language, level, auto} = req.body
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -117,15 +121,17 @@ export async function changeInfoAndPoint(req: Request, res: Response, next: Next
         resolve(decoded);
       });
     });
-    if (!isJWTPayload(auth, name)) {
+    if (!isJWTPayload(auth, username)) {
       return res.sendStatus(403);
     }
-    await UserDetail.updateOne({
-      name: name
-    }, {
-      $inc: {point: point},
-      $addToSet:{[where]: problemId}
-    })
+    await Promise.all([
+      UserDetail.findOneAndUpdate({name: username}, {
+        $set: {auto: auto}
+      }),
+      User.findOneAndUpdate({name: username}, {
+        $set: {level: level, language: language}
+      })
+    ])
     res.sendStatus(204)
   } catch (error) {
     next(error)
