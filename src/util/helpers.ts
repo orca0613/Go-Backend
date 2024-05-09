@@ -110,7 +110,7 @@ export function getRequestCheckNoticeForm(creator: string, url: string, language
       greeting = `회원님이 남겨주신 요청을 ${creator}님이 확인 했습니다.`
       break
     case 2:
-      form = `${creator}已经确认了你留下的请求。即使创建者确认了这一点，也有可能还没有更新变化。$${url}`
+      form = `${creator}已经确认了你留下的请求。即使创建者确认了这一点，也有可能还没有更新变化。&${url}`
       greeting = `${creator}已经确认了你留下的请求`
       break
     case 3:
@@ -121,4 +121,21 @@ export function getRequestCheckNoticeForm(creator: string, url: string, language
       break
   }
   return [greeting, form]
+}
+
+
+export function getRangeByLevel(level: number): number[] {
+  if (level < -4) {
+    return [-10, -4]
+  } else if (level < 0) {
+    return [-5, 0]
+  } else if (level < 7) {
+    return [0, 7]
+  } else if (level < 13) {
+    return [6, 13]
+  } else if (level < 19) {
+    return [12, 19]
+  } else {
+    return [-10, 19]
+  }
 }

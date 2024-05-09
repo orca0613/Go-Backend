@@ -10,12 +10,9 @@ export interface UserDetail {
   tried: number[],
   solved: number[],
   liked: number[],
-  disliked: number[],
-  asked: number[],
-  myFollowers: string[],
-  followList: string[],
-  loginTime: Date,
   auto: boolean,
+  level: number,
+  totalLike: number,
 }
 
 const UserDetailSchema = new Schema<UserDetail>(
@@ -48,30 +45,18 @@ const UserDetailSchema = new Schema<UserDetail>(
       type: [Number],
       required: true,
     },
-    disliked: {
-      type: [Number],
-      required: true,
-    },
-    asked: {
-      type: [Number],
-      required: true,
-    },
-    myFollowers: {
-      type: [String],
-      required: true,
-    },
-    followList: {
-      type: [String],
-      required: true,
-    },
-    loginTime: {
-      type: Date,
-      required: false,
-    },
     auto: {
       type: Boolean,
       required: true,
     },
+    level: {
+      type: Number,
+      required: true,
+    },
+    totalLike: {
+      type: Number,
+      required: true
+    }
   }
 )
 

@@ -10,6 +10,7 @@ export interface User {
   verify: boolean,
   language: number,
   time: Date,
+  loginTime: Date,
 }
 
 const UserSchema = new Schema<User>(
@@ -44,6 +45,11 @@ const UserSchema = new Schema<User>(
       type: Date,
       required: false,
     },
+    loginTime: {
+      type: Date,
+      required: false,
+    },
+
   }
 )
 

@@ -6,7 +6,6 @@ import { isJWTPayload } from "../util/helpers";
 import { User } from "../models/user";
 import _ from "lodash";
 
-
 export async function addElement(req: Request, res: Response, next: NextFunction) {
   const {element, name, where} = req.body
   const bonus = where === "solved"? 100 : 0
@@ -126,7 +125,7 @@ export async function changeSetting(req: Request, res: Response, next: NextFunct
     }
     await Promise.all([
       UserDetail.findOneAndUpdate({name: username}, {
-        $set: {auto: auto}
+        $set: {auto: auto, level: level}
       }),
       User.findOneAndUpdate({name: username}, {
         $set: {level: level, language: language}

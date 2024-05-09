@@ -111,5 +111,37 @@ export async function getNumberUncheckedMessages(req: Request, res: Response, ne
   }
 }
 
+export async function hideMessage(req: Request, res: Response, next: NextFunction) {
+  const { idList, name, where } = req.body
+  const splited: string[] = idList.split("&")
+  const bearerHeader = req.headers["authorization"]
+  const secretKey = env.TOKEN_KEY?? ""
+  if (!bearerHeader) {
+    return res.sendStatus(401)
+  }
+  const token = bearerHeader?.split(" ")[1]
+  try {
+    const auth = await new Promise((resolve, reject) => {
+      jwt.verify(token, secretKey, (err, decoded) => {
+        if (err) {
+          return res.sendStatus(401);
+        } 
+        resolve(decoded);
+      });
+    });
+    if (!isJWTPayload(auth, name)) {
+      return res.sendStatus(403);
+    }
+    splited.map(async id => {
+      await Message.findByIdAndUpdate(id, {
+        [where]: true
+      })
+    })
+    res.sendStatus(204)
+  } catch (error) {
+    next(error)
+  }
+
+}
 
 

@@ -43,15 +43,14 @@ export async function createProblem(req: Request, res: Response, next: NextFunct
         level: level,
         creator: creator,
         view: 0,
-        liked: [],
-        disliked: [],
         correctUser: [],
         correct: 0,
         totalCorrectUserLevel: 0,
         totalWrongUserLevel: 0,
         wrong: 0,
         time: new Date(),
-        problemIndex: newIdx
+        problemIndex: newIdx,
+        liked: 0
       }),
       UserDetail.updateOne(
         { name: creator },

@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 import { env } from "process";
 
 export async function createUser(req: Request, res: Response, next: NextFunction) {
-  const { email, password, language } = req.body
+  const { email, password, language, level } = req.body
   const hashed = await hashPassword(password)
   try {
     const newUser = await User.create({
@@ -21,6 +21,8 @@ export async function createUser(req: Request, res: Response, next: NextFunction
       name: newUser.name,
       point: 10000,
       auto: false,
+      level: level,
+      totalLike: 0,
     });
     sendVerifyMail(email, newUser._id, language)
     res.sendStatus(201)
@@ -50,13 +52,13 @@ export async function checkDuplicateName(req: Request, res: Response, next: Next
 }
 
 export async function login(req: Request, res: Response, next: NextFunction) {
-  const {email, password, languageIdx} = req.body
+  const {email, password} = req.body
   try {
     const user = await User.findOne({ email: email })
     if (!user) {
       return res.sendStatus(404)
     } else if (!user.verify) {
-      sendVerifyMail(email, user._id, languageIdx)
+      sendVerifyMail(email, user._id, user.language)
       return res.sendStatus(403)
     } else {
       const match = await comparePassword(password, user.password)
@@ -71,7 +73,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
           token: token,
           language: user.language
         }
-        await UserDetail.updateOne({
+        await User.updateOne({
           name: user.name
         }, {
           $currentDate: {loginTime: 1}

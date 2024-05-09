@@ -9,14 +9,13 @@ export interface ProblemInformation {
   level: number,
   creator: string,
   view: number,
-  liked: string[],
-  disliked: string[],
   correctUser: string[],
   correct: number,
   wrong: number,
   totalCorrectUserLevel: number,
   totalWrongUserLevel: number,
   time: Date,
+  liked: number,
 }
 
 const ProblemInformationSchema = new Schema<ProblemInformation>(
@@ -45,14 +44,6 @@ const ProblemInformationSchema = new Schema<ProblemInformation>(
       type: Number,
       required: true,
     },
-    liked: {
-      type: [String],
-      required: true,
-    },
-    disliked: {
-      type: [String],
-      required: true,
-    },
     correctUser: {
       type: [String],
       required: true,
@@ -76,7 +67,11 @@ const ProblemInformationSchema = new Schema<ProblemInformation>(
     time: {
       type: Date,
       required: true,
-    }
+    },
+    liked: {
+      type: Number,
+      required: true,
+    },
   }
 )
 

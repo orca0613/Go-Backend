@@ -1,11 +1,12 @@
 import express from "express"
-import { checkMessage, getMessageById, getMessageByReceiver, getMessageBySender, getNumberUncheckedMessages, sendMessage } from "../controller/message"
+import { checkMessage, getMessageById, getMessageByReceiver, getMessageBySender, getNumberUncheckedMessages, hideMessage, sendMessage } from "../controller/message"
 
 const messageRouter = express.Router()
 
 messageRouter.post("/send", sendMessage)
 
 messageRouter.patch("/check", checkMessage)
+messageRouter.patch("/hide-message", hideMessage)
 
 messageRouter.get("/get-by-sender/:sender", getMessageBySender)
 messageRouter.get("/get-by-receiver/:receiver", getMessageByReceiver)
