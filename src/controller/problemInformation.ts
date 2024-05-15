@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { ProblemInformation } from "../models/problemInformation";
 import jwt from 'jsonwebtoken';
 import { env } from "process";
-import { getRangeByLevel, isJWTPayload, ownParse } from "../util/helpers";
+import { getRangeByLevel, getTierByLevel, isJWTPayload, ownParse, sampleDbBox } from "../util/helpers";
 import { UserDetail } from "../models/userDetail";
 
 export async function changeCount(req: Request, res: Response, next: NextFunction) {
@@ -230,32 +230,9 @@ export async function addWrong(req: Request, res: Response, next: NextFunction) 
   }
 }
 
-export async function getProblemByIndexList(req: Request, res: Response, next: NextFunction) {
-  const problemIndexdList = req.params.problemIndexList
-  const indexList = JSON.parse(problemIndexdList)
-  try {
-    const problemList = await ProblemInformation.find({problemIndex: {$in: indexList}})
-                                      .sort({ time: 1 })
-    res.status(200).json(problemList)
-  } catch (error) {
-    next(error)
-  }
-}
-
-export async function getProblemByFilter(req: Request, res: Response, next: NextFunction) {
-  const filter: string = req.params.filter
-  const info = ownParse(filter)
-  try {
-    const problemList = await ProblemInformation.find({level: {$gt: info.low, $lt: info.high}, creator: info.creator? info.creator : {$type: "string"}})
-                                                .sort({ time: 1 })
-    res.status(200).json(problemList)
-  } catch (error) {
-    next(error)
-  }
-}
-
 export async function handleLiked(req: Request, res: Response, next: NextFunction) {
-  const {problemIdx, username, creator, add} = req.body
+  const {problemIdx, username, creator, level, add} = req.body
+  const tier = getTierByLevel(level)
   const cnt = add? 1 : -1
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
@@ -286,6 +263,12 @@ export async function handleLiked(req: Request, res: Response, next: NextFunctio
       }, {
         $inc: {totalLike: cnt}
       }),
+      sampleDbBox[tier - 1].updateOne({
+        problemIndex: problemIdx
+      }, {
+        $inc: {liked: cnt}
+      })
+
     ])
     res.sendStatus(204)
   } catch (error) {

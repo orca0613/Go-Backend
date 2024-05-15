@@ -6,10 +6,11 @@ import jwt from 'jsonwebtoken';
 import { env } from 'process';
 import _ from "lodash";
 import { initialVariations } from "../util/constants";
-import { isJWTPayload } from "../util/helpers";
+import { getTierByLevel, isJWTPayload, sampleDbBox } from "../util/helpers";
 
 export async function createProblem(req: Request, res: Response, next: NextFunction) {
   const { initialState, creator, level } = req.body;
+  const tier = getTierByLevel(level)
   const bearerHeader = req.headers["authorization"];
   const secretKey = process.env.TOKEN_KEY || "";
   if (!bearerHeader) {
@@ -56,6 +57,14 @@ export async function createProblem(req: Request, res: Response, next: NextFunct
         { name: creator },
         { $addToSet: { created: newIdx, tried: newIdx } }
       ),
+      sampleDbBox[tier - 1].create({
+        problemIndex: newIdx,
+        initialState: initialState,
+        level: level,
+        creator: creator,
+        time: new Date(),
+        liked: 0
+      })
     ]);
     res.sendStatus(201);
   } catch (error) {
@@ -67,7 +76,8 @@ export async function deleteProblem(req: Request, res: Response, next: NextFunct
   // Problem db에서 문제를 삭제하는 함수. 
   // 문제를 만들 때와 마찬가지로 ProblemInformation db와
   // UserDetail db에 대한 정보도 업데이트
-  const {problemIdx, creator} = req.body
+  const {problemIdx, creator, level} = req.body
+  const tier = getTierByLevel(level)
   const bearerHeader = req.headers["authorization"]
   const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
@@ -89,6 +99,7 @@ export async function deleteProblem(req: Request, res: Response, next: NextFunct
     await Promise.all([
       Problem.findOneAndDelete({problemIdx: problemIdx}),
       ProblemInformation.findOneAndDelete({problemIndex: problemIdx}),
+      sampleDbBox[tier - 1].findOneAndDelete({problemIndex: problemIdx}),
       UserDetail.updateOne({
         name: creator
       }, {
@@ -105,6 +116,9 @@ export async function getProblemByIdx(req: Request, res: Response, next: NextFun
   const problemIdx = Number(req.params.problemIdx)
   try {
     const problem = await Problem.findOne({problemIdx: problemIdx})
+    if (!problem) {
+      return res.sendStatus(404)
+    }
     res.status(200).json(problem)
   } catch (error) {
     next(error)

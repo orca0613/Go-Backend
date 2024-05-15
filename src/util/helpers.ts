@@ -3,6 +3,11 @@ import { randomBytes } from 'crypto';
 import 'dotenv/config'
 import { PasswordChangeGreeting, changePasswordLink, emailVerificationLink, goToChange, goToVerification, transporter, verificationNotice } from './constants';
 import { Types } from 'mongoose';
+import { HardestSampleProblem } from '../models/hardestSampleProblem';
+import { HardSampleProblem } from '../models/hardSampleProblem';
+import { MiddleSampleProblem } from '../models/middleSampleProblem';
+import { EasySampleProblem } from '../models/easySampleProblem';
+import { EasiestSampleProblem } from '../models/easiestSampleProblem';
 
 
 export async function hashPassword(password: string): Promise<string> {
@@ -139,3 +144,32 @@ export function getRangeByLevel(level: number): number[] {
     return [-10, 19]
   }
 }
+
+export function getTierByLevel(level: number): number {
+  if (level < -4) {
+    return 1
+  } else if (level < 0) {
+    return 2
+  } else if (level < 7) {
+    return 3
+  } else if (level < 13) {
+    return 4
+  } else if (level < 19) {
+    return 5
+  } else {
+    return 0
+  }
+}
+
+export function mergeArrays<T>(...arrays: T[][]): T[] {
+  return arrays.reduce((acc, arr) => acc.concat(arr), []);
+}
+
+export const sampleDbBox = [
+  HardestSampleProblem,
+  HardSampleProblem,
+  MiddleSampleProblem,
+  EasySampleProblem,
+  EasiestSampleProblem
+]
+

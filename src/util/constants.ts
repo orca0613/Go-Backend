@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer';
 import 'dotenv/config'
-
 export const USER = "user"
 export const PROBLEM = "problem"
 export const PROBLEM_INFORMATION = "problem_information"
@@ -8,6 +7,11 @@ export const USER_DETAIL = "user_detail"
 export const REPLY = "reply"
 export const MESSAGE = "message"
 export const REQUESTS = "requests"
+export const HARDEST_SAMPLE_PROBLEM = "hardest_sample_problem"
+export const HARD_SAMPLE_PROBLEM = "hard_sample_problem"
+export const MIDDLE_SAMPLE_PROBLEM = "middle_sample_problem"
+export const EASY_SAMPLE_PROBLEM = "easy_sample_problem"
+export const EASIEST_SAMPLE_PROBLEM = "easiest_sample_problem"
 export const CREATOR = "creator"
 export const TOKEN_EXPIRY = "1d"
 export const HOME = "https://go-problem-test.web.app/"

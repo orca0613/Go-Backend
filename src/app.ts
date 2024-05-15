@@ -6,6 +6,7 @@ import userDetailRouter from "./routes/userDetail"
 import replyRouter from "./routes/reply";
 import messageRouter from "./routes/message";
 import requestsRouter from "./routes/requests";
+import sampleProblemRouter from "./routes/sampleProblem";
 
 export default app
 
@@ -16,3 +17,4 @@ app.use("/user-detail", userDetailRouter)
 app.use("/reply", replyRouter)
 app.use("/message", messageRouter)
 app.use("/requests", requestsRouter)
+app.use("/sample", sampleProblemRouter)
