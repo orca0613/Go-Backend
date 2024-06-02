@@ -41,6 +41,7 @@ const RequestsSchema = new Schema<Requests>(
     checked: {
       type: Boolean,
       required: true,
+      default: false,
     },
   }
 )

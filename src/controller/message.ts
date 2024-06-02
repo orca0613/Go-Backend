@@ -1,29 +1,18 @@
 import { NextFunction, Request, Response } from "express";
-import jwt from 'jsonwebtoken';
-import { env } from "process";
-import { isJWTPayload } from "../util/helpers";
+import { isValidMember } from "../util/helpers";
 import { Message } from "../models/message";
 
 export async function sendMessage(req: Request, res: Response, next: NextFunction) {
   const {sender, receiver, title, contents, quotation} = req.body
   const bearerHeader = req.headers["authorization"]
-  const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
     return res.sendStatus(401)
   }
-  const token = bearerHeader?.split(" ")[1]
+  const memberStatus = await isValidMember(bearerHeader, sender)
+  if (memberStatus !== 200) {
+    return res.sendStatus(memberStatus)
+  }
   try {
-    const auth = await new Promise((resolve, reject) => {
-      jwt.verify(token, secretKey, (err, decoded) => {
-        if (err) {
-          return res.sendStatus(401);
-        } 
-        resolve(decoded);
-      });
-    });
-    if (!isJWTPayload(auth, sender)) {
-      return res.sendStatus(403);
-    }
     const newMessage = await Message.create({
       sender: sender,
       receiver: receiver,
@@ -31,10 +20,6 @@ export async function sendMessage(req: Request, res: Response, next: NextFunctio
       contents: contents,
       quotation: quotation,
       time: new Date(),
-      checked: false,
-      hideToReceiver: false,
-      hideToSender:false,
-      includeUrl: false,
     })
     res.status(201).json(newMessage)
   } catch (error) {
@@ -45,23 +30,14 @@ export async function sendMessage(req: Request, res: Response, next: NextFunctio
 export async function checkMessage(req: Request, res: Response, next: NextFunction) {
   const {id, name} = req.body
   const bearerHeader = req.headers["authorization"]
-  const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
     return res.sendStatus(401)
   }
-  const token = bearerHeader?.split(" ")[1]
+  const memberStatus = await isValidMember(bearerHeader, name)
+  if (memberStatus !== 200) {
+    return res.sendStatus(memberStatus)
+  }
   try {
-    const auth = await new Promise((resolve, reject) => {
-      jwt.verify(token, secretKey, (err, decoded) => {
-        if (err) {
-          return res.sendStatus(401);
-        } 
-        resolve(decoded);
-      });
-    });
-    if (!isJWTPayload(auth, name)) {
-      return res.sendStatus(403);
-    }
     await Message.findOneAndUpdate({_id: id, receiver: name}, {
       checked: true
     })
@@ -115,23 +91,14 @@ export async function hideMessage(req: Request, res: Response, next: NextFunctio
   const { idList, name, where } = req.body
   const splited: string[] = idList.split("&")
   const bearerHeader = req.headers["authorization"]
-  const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
     return res.sendStatus(401)
   }
-  const token = bearerHeader?.split(" ")[1]
+  const memberStatus = await isValidMember(bearerHeader, name)
+  if (memberStatus !== 200) {
+    return res.sendStatus(memberStatus)
+  }
   try {
-    const auth = await new Promise((resolve, reject) => {
-      jwt.verify(token, secretKey, (err, decoded) => {
-        if (err) {
-          return res.sendStatus(401);
-        } 
-        resolve(decoded);
-      });
-    });
-    if (!isJWTPayload(auth, name)) {
-      return res.sendStatus(403);
-    }
     splited.map(async id => {
       await Message.findByIdAndUpdate(id, {
         [where]: true

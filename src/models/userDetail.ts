@@ -24,6 +24,7 @@ const UserDetailSchema = new Schema<UserDetail>(
     point: {
       type: Number,
       required: true,
+      default: 10000,
     },
     created: {
       type: [Number],
@@ -48,6 +49,7 @@ const UserDetailSchema = new Schema<UserDetail>(
     auto: {
       type: Boolean,
       required: true,
+      default: false,
     },
     level: {
       type: Number,
@@ -55,7 +57,8 @@ const UserDetailSchema = new Schema<UserDetail>(
     },
     totalLike: {
       type: Number,
-      required: true
+      required: true,
+      default: 0,
     }
   }
 )

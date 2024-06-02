@@ -36,6 +36,7 @@ const UserSchema = new Schema<User>(
     verify: {
       type: Boolean,
       required: true,
+      default: false,
     },
     language: {
       type: Number,

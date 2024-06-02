@@ -1,8 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { UserDetail } from "../models/userDetail";
-import jwt from 'jsonwebtoken';
-import { env } from "process";
-import { isJWTPayload } from "../util/helpers";
+import { isValidMember } from "../util/helpers";
 import { User } from "../models/user";
 import _ from "lodash";
 
@@ -10,23 +8,14 @@ export async function addElement(req: Request, res: Response, next: NextFunction
   const {element, name, where} = req.body
   const bonus = where === "solved"? 100 : 0
   const bearerHeader = req.headers["authorization"]
-  const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
     return res.sendStatus(401)
   }
-  const token = bearerHeader?.split(" ")[1]
+  const memberStatus = await isValidMember(bearerHeader, name)
+  if (memberStatus !== 200) {
+    return res.sendStatus(memberStatus)
+  }
   try {
-    const auth = await new Promise((resolve, reject) => {
-      jwt.verify(token, secretKey, (err, decoded) => {
-        if (err) {
-          return res.sendStatus(401);
-        } 
-        resolve(decoded);
-      });
-    });
-    if (!isJWTPayload(auth, name)) {
-      return res.sendStatus(403);
-    }
     await UserDetail.updateOne({
       name: name
     }, {
@@ -49,23 +38,14 @@ export async function addElement(req: Request, res: Response, next: NextFunction
 export async function deleteElement(req: Request, res: Response, next: NextFunction) {
   const {element, name, where} = req.body
   const bearerHeader = req.headers["authorization"]
-  const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
     return res.sendStatus(401)
   }
-  const token = bearerHeader?.split(" ")[1]
+  const memberStatus = await isValidMember(bearerHeader, name)
+  if (memberStatus !== 200) {
+    return res.sendStatus(memberStatus)
+  }
   try {
-    const auth = await new Promise((resolve, reject) => {
-      jwt.verify(token, secretKey, (err, decoded) => {
-        if (err) {
-          return res.sendStatus(401);
-        } 
-        resolve(decoded);
-      });
-    });
-    if (!isJWTPayload(auth, name)) {
-      return res.sendStatus(403);
-    }
     await UserDetail.updateOne({
       name: name
     }, {
@@ -104,30 +84,21 @@ export async function getAllCreators(req: Request, res: Response, next: NextFunc
 }
 
 export async function changeSetting(req: Request, res: Response, next: NextFunction) {
-  const {username, language, level, auto} = req.body
+  const {name, language, level, auto} = req.body
   const bearerHeader = req.headers["authorization"]
-  const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
     return res.sendStatus(401)
   }
-  const token = bearerHeader?.split(" ")[1]
+  const memberStatus = await isValidMember(bearerHeader, name)
+  if (memberStatus !== 200) {
+    return res.sendStatus(memberStatus)
+  }
   try {
-    const auth = await new Promise((resolve, reject) => {
-      jwt.verify(token, secretKey, (err, decoded) => {
-        if (err) {
-          return res.sendStatus(401);
-        } 
-        resolve(decoded);
-      });
-    });
-    if (!isJWTPayload(auth, username)) {
-      return res.sendStatus(403);
-    }
     await Promise.all([
-      UserDetail.findOneAndUpdate({name: username}, {
+      UserDetail.findOneAndUpdate({name: name}, {
         $set: {auto: auto, level: level}
       }),
-      User.findOneAndUpdate({name: username}, {
+      User.findOneAndUpdate({name: name}, {
         $set: {level: level, language: language}
       })
     ])

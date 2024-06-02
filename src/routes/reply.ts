@@ -1,5 +1,5 @@
 import express from "express"
-import { addReply, deleteReply, getReplies } from "../controller/reply"
+import { addReply, getReplies, hideReply } from "../controller/reply"
 
 const replyRouter = express.Router()
 
@@ -7,6 +7,6 @@ replyRouter.post("/add", addReply)
 
 replyRouter.get("/get/:problemId", getReplies)
 
-replyRouter.patch("/delete", deleteReply)
+replyRouter.patch("/hide", hideReply)
 
 export default replyRouter

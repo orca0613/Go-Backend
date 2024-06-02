@@ -8,10 +8,10 @@ export interface Problem {
   variations: object,
   answers: object,
   questions: object,
-  creator: string,
-  comment: string,
+  creator: string, // del
+  comment: string, // del
   color: string,
-  level: number,
+  level: number, // del
   time: Date,
 }
 

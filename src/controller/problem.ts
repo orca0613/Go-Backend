@@ -2,33 +2,23 @@ import { NextFunction, Request, Response } from "express";
 import { Problem } from "../models/problem";
 import { ProblemInformation } from "../models/problemInformation";
 import { UserDetail } from "../models/userDetail";
-import jwt from 'jsonwebtoken';
-import { env } from 'process';
 import _ from "lodash";
+import { getTierByLevel, isValidMember } from "../util/helpers";
+import { SampleProblem } from "../models/sampleProblem";
 import { initialVariations } from "../util/constants";
-import { getTierByLevel, isJWTPayload, sampleDbBox } from "../util/helpers";
 
 export async function createProblem(req: Request, res: Response, next: NextFunction) {
   const { initialState, creator, level } = req.body;
   const tier = getTierByLevel(level)
   const bearerHeader = req.headers["authorization"];
-  const secretKey = process.env.TOKEN_KEY || "";
   if (!bearerHeader) {
     return res.sendStatus(401);
   }
-  const token = bearerHeader.split(" ")[1];
+  const memberStatus = await isValidMember(bearerHeader, creator)
+  if (memberStatus !== 200) {
+    return res.sendStatus(memberStatus)
+  }
   try {
-    const auth = await new Promise((resolve, reject) => {
-      jwt.verify(token, secretKey, (err, decoded) => {
-        if (err) {
-          return res.sendStatus(401);
-        } 
-        resolve(decoded);
-      });
-    });
-    if (!isJWTPayload(auth, creator)) {
-      return res.sendStatus(403);
-    }
     const lastProblem = await Problem.find().sort({problemIdx: -1}).limit(1)
     const newIdx = lastProblem[0].problemIdx + 1
     const newProblem = await Problem.create({
@@ -40,30 +30,21 @@ export async function createProblem(req: Request, res: Response, next: NextFunct
     await Promise.all([
       ProblemInformation.create({
         problemId,
-        initialState,
         level: level,
         creator: creator,
-        view: 0,
-        correctUser: [],
-        correct: 0,
-        totalCorrectUserLevel: 0,
-        totalWrongUserLevel: 0,
-        wrong: 0,
         time: new Date(),
         problemIndex: newIdx,
-        liked: 0
       }),
       UserDetail.updateOne(
         { name: creator },
         { $addToSet: { created: newIdx, tried: newIdx } }
       ),
-      sampleDbBox[tier - 1].create({
+      SampleProblem.create({
         problemIndex: newIdx,
         initialState: initialState,
         level: level,
         creator: creator,
-        time: new Date(),
-        liked: 0
+        tier: tier,
       })
     ]);
     res.sendStatus(201);
@@ -79,27 +60,18 @@ export async function deleteProblem(req: Request, res: Response, next: NextFunct
   const {problemIdx, creator, level} = req.body
   const tier = getTierByLevel(level)
   const bearerHeader = req.headers["authorization"]
-  const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
     return res.sendStatus(401)
   }
-  const token = bearerHeader?.split(" ")[1]
+  const memberStatus = await isValidMember(bearerHeader, creator)
+  if (memberStatus !== 200) {
+    return res.sendStatus(memberStatus)
+  }
   try {
-    const auth = await new Promise((resolve, reject) => {
-      jwt.verify(token, secretKey, (err, decoded) => {
-        if (err) {
-          return res.sendStatus(401);
-        } 
-        resolve(decoded);
-      });
-    });
-    if (!isJWTPayload(auth, creator)) {
-      return res.sendStatus(403);
-    }
     await Promise.all([
       Problem.findOneAndDelete({problemIdx: problemIdx}),
       ProblemInformation.findOneAndDelete({problemIndex: problemIdx}),
-      sampleDbBox[tier - 1].findOneAndDelete({problemIndex: problemIdx}),
+      SampleProblem.findOneAndDelete({problemIndex: problemIdx}),
       UserDetail.updateOne({
         name: creator
       }, {
@@ -128,24 +100,15 @@ export async function getProblemByIdx(req: Request, res: Response, next: NextFun
 export async function updateVariations(req: Request, res: Response, next: NextFunction) {
   const {problemIdx, where, variations, name, creator} = req.body
   const bearerHeader = req.headers["authorization"]
-  const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
     return res.sendStatus(401)
   }
-  const token = bearerHeader?.split(" ")[1]
+  const memberStatus = await isValidMember(bearerHeader, name)
+  if (memberStatus !== 200) {
+    return res.sendStatus(memberStatus)
+  }
   try {
-    const auth = await new Promise((resolve, reject) => {
-      jwt.verify(token, secretKey, (err, decoded) => {
-        if (err) {
-          return res.sendStatus(401);
-        } 
-        resolve(decoded);
-      });
-    });
-    if (!isJWTPayload(auth, name)) {
-      return res.sendStatus(403);
-    }
-    const update = await Problem.updateOne({
+    await Problem.updateOne({
       problemIdx: problemIdx
     }, {
       $set: {[where]: variations}
@@ -153,19 +116,12 @@ export async function updateVariations(req: Request, res: Response, next: NextFu
       new: true
     })
     if (where === "questions") {
-      if (_.isEqual(variations, initialVariations)) {
-        await UserDetail.updateOne({
-          name: creator
-        }, {
-          $pull: {withQuestions: problemIdx}
-        })
-      } else {
-        await UserDetail.updateOne({
-          name: creator
-        }, {
-          $addToSet: {withQuestions: problemIdx}
-        })
+      const request = _.isEqual(variations, initialVariations)? {
+        $pull: {withQuestions: problemIdx}
+      } : {
+        $addToSet: {withQuestions: problemIdx}
       }
+      await UserDetail.updateOne({name: creator}, request)
     }
     res.sendStatus(204)
   } catch (error) {
@@ -176,23 +132,14 @@ export async function updateVariations(req: Request, res: Response, next: NextFu
 export async function modifyProblem(req: Request, res: Response, next: NextFunction) {
   const {creator, problemIdx, initialState, comment, level, color} = req.body
   const bearerHeader = req.headers["authorization"]
-  const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
     return res.sendStatus(401)
   }
-  const token = bearerHeader?.split(" ")[1]
+  const memberStatus = await isValidMember(bearerHeader, creator)
+  if (memberStatus !== 200) {
+    return res.sendStatus(memberStatus)
+  }
   try {
-    const auth = await new Promise((resolve, reject) => {
-      jwt.verify(token, secretKey, (err, decoded) => {
-        if (err) {
-          return res.sendStatus(401)
-        };
-        resolve(decoded);
-      });
-    });
-    if (!isJWTPayload(auth, creator)) {
-      return res.sendStatus(403);
-    }
     await Promise.all([
       Problem.findOneAndUpdate({
         problemIdx: problemIdx
@@ -207,6 +154,14 @@ export async function modifyProblem(req: Request, res: Response, next: NextFunct
         new: true
       }),
       ProblemInformation.findOneAndUpdate({
+        problemIndex: problemIdx
+      }, {
+        $set: {
+          initialState: initialState,
+          level: level
+        }
+      }),
+      SampleProblem.findOneAndUpdate({
         problemIndex: problemIdx
       }, {
         $set: {

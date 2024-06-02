@@ -1,10 +1,11 @@
 import { Request, Response,  NextFunction} from "express";
 import { User } from "../models/user";
-import { comparePassword, hashPassword, isJWTPayload, sendResetPasswordMail, sendVerifyMail } from "../util/helpers";
+import { comparePassword, hashPassword, isValidMember, sendResetPasswordMail, sendVerifyMail } from "../util/helpers";
 import { isValidObjectId } from "mongoose";
 import { UserDetail } from "../models/userDetail"
 import jwt from 'jsonwebtoken';
 import { env } from "process";
+import { RefreshToken } from "../models/refreshToken";
 
 export async function createUser(req: Request, res: Response, next: NextFunction) {
   const { email, password, language, level } = req.body
@@ -13,16 +14,12 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     const newUser = await User.create({
       ...req.body,
       password: hashed,
-      verify: false,
       language: language,
       time: new Date(),
     })
-    const newUserDetail = await UserDetail.create({
+    await UserDetail.create({
       name: newUser.name,
-      point: 10000,
-      auto: false,
       level: level,
-      totalLike: 0,
     });
     sendVerifyMail(email, newUser._id, language)
     res.sendStatus(201)
@@ -91,23 +88,14 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 export async function deleteId(req: Request, res: Response, next: NextFunction) {
   const {id, name} = req.body
   const bearerHeader = req.headers["authorization"]
-  const secretKey = env.TOKEN_KEY?? ""
   if (!bearerHeader) {
     return res.sendStatus(401)
   }
-  const token = bearerHeader?.split(" ")[1]
+  const memberStatus = await isValidMember(bearerHeader, name)
+  if (memberStatus !== 200) {
+    return res.sendStatus(memberStatus)
+  }
   try {
-    const auth = await new Promise((resolve, reject) => {
-      jwt.verify(token, secretKey, (err, decoded) => {
-        if (err) {
-          return res.sendStatus(401);
-        } 
-        resolve(decoded);
-      });
-    });
-    if (!isJWTPayload(auth, name)) {
-      return res.sendStatus(403);
-    }
     if (!isValidObjectId(id)) {
       return res.sendStatus(400)
     }
@@ -189,3 +177,48 @@ export async function checkEmailAndSendUrl(req: Request, res: Response, next: Ne
     next(error)
   }
 }
+
+export async function reissueAccessToken(req: Request, res: Response, next: NextFunction) {
+  const { refreshToken } = req.body
+  const secretKey = env.TOKEN_KEY?? ""
+  if (refreshToken) {
+    try {
+      const payload = jwt.verify(refreshToken, secretKey)
+      const username = payload.sub
+      const storedToken = await RefreshToken.findOne({name: username})
+      if (storedToken && storedToken.token === refreshToken) {
+        const newAccessToken = jwt.sign({
+          name: username
+        }, secretKey, {expiresIn: "1d"})
+        return res.json({ accessToken: newAccessToken })
+      } else {
+        return res.status(403).json({ error: 'Invalid refresh token' })
+      }
+    } catch (error) {
+      next(error)
+    }
+  }
+  return res.status(400).json({ error: 'Refresh token missing' })
+}
+
+
+
+// app.post('/api/refresh', async (req: Request, res: Response) => {
+//   const { refreshToken } = req.body;
+//   if (refreshToken) {
+//     try {
+//       const payload: any = jwt.verify(refreshToken, SECRET_KEY);
+//       const userId = payload.sub;
+//       const storedToken = await RefreshToken.findOne({ userId });
+//       if (storedToken && storedToken.token === refreshToken) {
+//         const newAccessToken = createAccessToken(userId);
+//         return res.json({ accessToken: newAccessToken });
+//       } else {
+//         return res.status(403).json({ error: 'Invalid refresh token' });
+//       }
+//     } catch (error) {
+//       return res.status(403).json({ error: 'Invalid refresh token' });
+//     }
+//   }
+//   return res.status(400).json({ error: 'Refresh token missing' });
+// });

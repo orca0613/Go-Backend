@@ -44,18 +44,22 @@ const MessageSchema = new Schema<Message>(
     checked: {
       type: Boolean,
       required: true,
+      default: false,
     },
     hideToReceiver: {
       type: Boolean,
       required: true,
+      default: false,
     },
     hideToSender: {
       type: Boolean,
       required: true,
+      default: false,
     },
     includeUrl: {
       type: Boolean,
-      required: true
+      required: true,
+      default: false,
     },
   }
 )

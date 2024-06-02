@@ -34,6 +34,7 @@ const ReplySchema = new Schema<Reply>(
     deleted: {
       type: Boolean,
       required: true,
+      default: false
     },
     deletedTime: {
       type: Date,
@@ -42,6 +43,7 @@ const ReplySchema = new Schema<Reply>(
     modified: {
       type: Boolean,
       required: true,
+      default: false
     },
     modifiedTime: {
       type: Date,

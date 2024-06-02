@@ -1,21 +1,22 @@
 import { Schema, Types, model } from "mongoose";
-import { EASIEST_SAMPLE_PROBLEM } from "../util/constants";
+import { SAMPLE_PROBLEM } from "../util/constants";
 
-export interface EasiestSampleProblem {
+export interface SampleProblem {
   _id: Types.ObjectId,
   problemIndex: number,
   initialState: string[][]
   level: number,
   creator: string,
-  time: Date,
   liked: number,
+  tier: number,
 }
 
-const EasiestSampleProblemSchema = new Schema<EasiestSampleProblem>(
+const SampleProblemSchema = new Schema<SampleProblem>(
   {
     problemIndex: {
       type: Number,
       required: true,
+      index: true,
     },
     initialState: {
       type: [[String]],
@@ -24,20 +25,27 @@ const EasiestSampleProblemSchema = new Schema<EasiestSampleProblem>(
     level: {
       type: Number,
       required: true,
+      index: true,
     },
     creator: {
       type: String,
       required: true,
-    },
-    time: {
-      type: Date,
-      required: true,
+      index: true,
     },
     liked: {
       type: Number,
       required: true,
+      default: 0,
     },
+    tier: {
+      type: Number,
+      required: true,
+      index: true,
+    }
+  },
+  {
+    timestamps: true
   }
 )
 
-export const EasiestSampleProblem = model<EasiestSampleProblem>(EASIEST_SAMPLE_PROBLEM, EasiestSampleProblemSchema)
+export const SampleProblem = model<SampleProblem>(SAMPLE_PROBLEM, SampleProblemSchema)

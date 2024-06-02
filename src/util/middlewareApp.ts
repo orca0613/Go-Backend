@@ -2,6 +2,7 @@
 import cors from "cors";
 import express from "express";
 import morgan from "morgan";
+import compression from "compression"
 
 const corsOption = {
   origin: ['https://go-problem-test.web.app', 'http://localhost:5173'], // 허용할 출처
@@ -12,6 +13,7 @@ const app = express()
 app.use(cors(corsOption))
 // app.use(morgan("short")) // for request logs
 app.use(express.json())
+app.use(compression())
 
 
 export default app

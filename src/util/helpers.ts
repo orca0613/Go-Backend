@@ -8,6 +8,7 @@ import { HardSampleProblem } from '../models/hardSampleProblem';
 import { MiddleSampleProblem } from '../models/middleSampleProblem';
 import { EasySampleProblem } from '../models/easySampleProblem';
 import { EasiestSampleProblem } from '../models/easiestSampleProblem';
+import jwt from 'jsonwebtoken';
 
 
 export async function hashPassword(password: string): Promise<string> {
@@ -161,15 +162,20 @@ export function getTierByLevel(level: number): number {
   }
 }
 
-export function mergeArrays<T>(...arrays: T[][]): T[] {
-  return arrays.reduce((acc, arr) => acc.concat(arr), []);
+export async function isValidMember(bearerHeader: string, name: string): Promise<number> {
+  const secretKey = process.env.TOKEN_KEY || "";
+  const token = bearerHeader.split(" ")[1];
+  const auth = await new Promise((resolve, reject) => {
+    jwt.verify(token, secretKey, (err, decoded) => {
+      if (err) {
+        return 401;
+      } 
+      resolve(decoded);
+    });
+  });
+  if (!isJWTPayload(auth, name)) {
+    return 403;
+  }
+  return 200
 }
-
-export const sampleDbBox = [
-  HardestSampleProblem,
-  HardSampleProblem,
-  MiddleSampleProblem,
-  EasySampleProblem,
-  EasiestSampleProblem
-]
 
