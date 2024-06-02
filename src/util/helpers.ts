@@ -3,11 +3,6 @@ import { randomBytes } from 'crypto';
 import 'dotenv/config'
 import { PasswordChangeGreeting, changePasswordLink, emailVerificationLink, goToChange, goToVerification, transporter, verificationNotice } from './constants';
 import { Types } from 'mongoose';
-import { HardestSampleProblem } from '../models/hardestSampleProblem';
-import { HardSampleProblem } from '../models/hardSampleProblem';
-import { MiddleSampleProblem } from '../models/middleSampleProblem';
-import { EasySampleProblem } from '../models/easySampleProblem';
-import { EasiestSampleProblem } from '../models/easiestSampleProblem';
 import jwt from 'jsonwebtoken';
 
 
@@ -127,23 +122,6 @@ export function getRequestCheckNoticeForm(creator: string, url: string, language
       break
   }
   return [greeting, form]
-}
-
-
-export function getRangeByLevel(level: number): number[] {
-  if (level < -4) {
-    return [-10, -4]
-  } else if (level < 0) {
-    return [-5, 0]
-  } else if (level < 7) {
-    return [0, 7]
-  } else if (level < 13) {
-    return [6, 13]
-  } else if (level < 19) {
-    return [12, 19]
-  } else {
-    return [-10, 19]
-  }
 }
 
 export function getTierByLevel(level: number): number {
