@@ -13,6 +13,12 @@ export interface UserDetail {
   auto: boolean,
   level: number,
   totalLike: number,
+  wrong: object,
+  wrongPerLevel: object,
+  correctPerLevel: object,
+  totalWrong: number,
+  totalCorrect: number,
+
 }
 
 const UserDetailSchema = new Schema<UserDetail>(
@@ -59,6 +65,31 @@ const UserDetailSchema = new Schema<UserDetail>(
       type: Number,
       required: true,
       default: 0,
+    },
+    wrong: {
+      type: Object,
+      required: true,
+      default: {}
+    },
+    wrongPerLevel: {
+      type: Object,
+      required: true,
+      default: {}
+    },
+    correctPerLevel: {
+      type: Object,
+      required: true,
+      default: {}
+    },
+    totalWrong: {
+      type: Number,
+      required: true,
+      default: 0
+    },
+    totalCorrect: {
+      type: Number,
+      required: true,
+      default: 0
     }
   }
 )

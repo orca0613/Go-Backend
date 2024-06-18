@@ -21,15 +21,13 @@ export async function createProblem(req: Request, res: Response, next: NextFunct
   try {
     const lastProblem = await Problem.find().sort({problemIdx: -1}).limit(1)
     const newIdx = lastProblem[0].problemIdx + 1
-    const newProblem = await Problem.create({
-      ...req.body,
-      time: new Date(),
-      problemIdx: newIdx
-    });
-    const problemId = String(newProblem._id);
     await Promise.all([
+      Problem.create({
+        ...req.body,
+        time: new Date(),
+        problemIdx: newIdx
+      }),
       ProblemInformation.create({
-        problemId,
         level: level,
         creator: creator,
         time: new Date(),
@@ -132,6 +130,7 @@ export async function updateVariations(req: Request, res: Response, next: NextFu
 export async function modifyProblem(req: Request, res: Response, next: NextFunction) {
   const {creator, problemIdx, initialState, comment, level, color} = req.body
   const bearerHeader = req.headers["authorization"]
+  const tier = getTierByLevel(level)
   if (!bearerHeader) {
     return res.sendStatus(401)
   }
@@ -166,7 +165,8 @@ export async function modifyProblem(req: Request, res: Response, next: NextFunct
       }, {
         $set: {
           initialState: initialState,
-          level: level
+          level: level,
+          tier: tier
         }
       })
     ])

@@ -22,35 +22,6 @@ export async function addElement(req: Request, res: Response, next: NextFunction
       $addToSet: {[where]: element},
       $inc: {point: bonus}
     })
-    if (where === "followList") {
-      await UserDetail.updateOne({
-        name: element
-      }, {
-        $addToSet: {myFollowers: name},
-      })
-    }
-    res.sendStatus(204)
-  } catch (error) {
-    next(error)
-  }
-}
-
-export async function deleteElement(req: Request, res: Response, next: NextFunction) {
-  const {element, name, where} = req.body
-  const bearerHeader = req.headers["authorization"]
-  if (!bearerHeader) {
-    return res.sendStatus(401)
-  }
-  const memberStatus = await isValidMember(bearerHeader, name)
-  if (memberStatus !== 200) {
-    return res.sendStatus(memberStatus)
-  }
-  try {
-    await UserDetail.updateOne({
-      name: name
-    }, {
-      $pull: {[where]: element}
-    })
     res.sendStatus(204)
   } catch (error) {
     next(error)

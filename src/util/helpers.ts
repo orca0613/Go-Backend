@@ -98,24 +98,24 @@ export function ownParse(param: string) {
   return filter
 }
 
-export function getRequestCheckNoticeForm(creator: string, url: string, language: number): string[] {
+export function getRequestCheckNoticeForm(creator: string, problemIdx: string, language: number): string[] {
   let form = ""
   let greeting = ""
   switch (language) {
     case 0:
-      form = `${creator} has confirmed the request you left. Even if the creator confirmed it, there is a possibility that the variations may not have been updated.&${url}`
+      form = `${creator} has confirmed the request you left. Even if the creator confirmed it, there is a possibility that the variations may not have been updated.&${problemIdx}`
       greeting = `${creator} has confirmed the request you left.`
       break
     case 1:
-      form = `회원님이 남겨주신 요청을 ${creator}님이 확인 했습니다. 출제자가 확인 했더라도 변화도는 업데이트 되지 않았을 수 있습니다.&${url}`
+      form = `회원님이 남겨주신 요청을 ${creator}님이 확인 했습니다. 출제자가 확인 했더라도 변화도는 업데이트 되지 않았을 수 있습니다.&${problemIdx}`
       greeting = `회원님이 남겨주신 요청을 ${creator}님이 확인 했습니다.`
       break
     case 2:
-      form = `${creator}已经确认了你留下的请求。即使创建者确认了这一点，也有可能还没有更新变化。&${url}`
+      form = `${creator}已经确认了你留下的请求。即使创建者确认了这一点，也有可能还没有更新变化。&${problemIdx}`
       greeting = `${creator}已经确认了你留下的请求`
       break
     case 3:
-      form = `会員様が残してくださった要請を${creator}様が確認しました。創作者が確認しても変化度が更新されていない可能性があります。&${url}`
+      form = `会員様が残してくださった要請を${creator}様が確認しました。創作者が確認しても変化度が更新されていない可能性があります。&${problemIdx}`
       greeting = `会員様が残してくださった要請を${creator}様が確認しました。`
       break
     default:

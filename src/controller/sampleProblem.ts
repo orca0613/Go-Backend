@@ -88,6 +88,11 @@ export async function getSampleProblemByIdx(req: Request, res: Response, next: N
 export async function handleLiked(req: Request, res: Response, next: NextFunction) {
   const {problemIndex, name, creator, add} = req.body
   const cnt = add? 1 : -1
+  const request = add? {
+    $addToSet: {liked: problemIndex}
+  } : {
+    $pull: {liked: problemIndex}
+  }
   const bearerHeader = req.headers["authorization"]
   if (!bearerHeader) {
     return res.sendStatus(401)
@@ -107,7 +112,10 @@ export async function handleLiked(req: Request, res: Response, next: NextFunctio
         name: creator
       }, {
         $inc: {totalLike: cnt}
-      })
+      }),
+      UserDetail.updateOne({
+        name: name
+      }, request)
     ])
     res.sendStatus(204)
   } catch (error) {

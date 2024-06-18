@@ -31,7 +31,6 @@ export async function sendRequest(req: Request, res: Response, next: NextFunctio
 
 export async function checkRequest(req: Request, res: Response, next: NextFunction) {
   const {problemIdx, creator, key} = req.body
-  const url = `${HOME}problem/${problemIdx}`
   const bearerHeader = req.headers["authorization"]
   if (!bearerHeader) {
     return res.sendStatus(401)
@@ -46,7 +45,7 @@ export async function checkRequest(req: Request, res: Response, next: NextFuncti
     })
     const w = await Requests.find({problemIdx: problemIdx, creator: creator, key: key})
     w.map(async a => {
-      const [greeting, form] = getRequestCheckNoticeForm(a.creator, url, a.language)
+      const [greeting, form] = getRequestCheckNoticeForm(a.creator, problemIdx, a.language)
       await Message.create({
         sender: "admin",
         receiver: a.client,

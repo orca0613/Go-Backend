@@ -113,11 +113,25 @@ export async function deleteId(req: Request, res: Response, next: NextFunction) 
 export async function verifyMail(req: Request, res: Response, next: NextFunction) {
   const userId = req.params.userId
   try {
-    const update = await User.findByIdAndUpdate(userId, {
-      $set: {verify: true}
-    })
-    if (update) {
-      res.sendStatus(204)
+    const user = await User.findById(userId)
+    if (user) {
+      const token = jwt.sign({
+        id: user._id,
+        name: user.name
+      }, env.TOKEN_KEY?? "", {expiresIn: "1d"})
+      const response = {
+        name: user.name,
+        level: user.level,
+        token: token,
+        language: user.language
+      }
+      await User.updateOne({
+        name: user.name
+      }, {
+        $currentDate: {loginTime: 1},
+        $set: {verify: true}
+      })
+      res.status(200).json(response)
     } else {
       res.sendStatus(404)
     }
