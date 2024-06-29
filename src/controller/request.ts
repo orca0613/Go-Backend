@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { getRequestCheckNoticeForm, isValidMember } from "../util/helpers";
-import { Requests } from "../models/requests";
+import { Requests } from "../models/request";
 import { HOME } from "../util/constants";
 import { Message } from "../models/message";
 

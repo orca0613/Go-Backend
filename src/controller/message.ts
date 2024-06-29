@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { isValidMember } from "../util/helpers";
 import { Message } from "../models/message";
+import { User } from "../models/user";
 
 export async function sendMessage(req: Request, res: Response, next: NextFunction) {
   const {sender, receiver, title, contents, quotation} = req.body
@@ -108,7 +109,25 @@ export async function hideMessage(req: Request, res: Response, next: NextFunctio
   } catch (error) {
     next(error)
   }
-
 }
+
+// export async function sendSuggestMessage(req: Request, res: Response, next: NextFunction) {
+//   const allUsers = await User.find()
+//   try {
+//     allUsers.map(async user => {
+//       const form: string[] = suggestTesterForm(user.language)
+//       await Message.create({
+//         sender: "admin",
+//         receiver: user.name,
+//         title: form[0],
+//         contents: form[1],
+//         time: new Date()
+//       })
+//     })
+//     res.sendStatus(201)
+//   } catch (error) {
+//     next(error)
+//   }
+// }
 
 

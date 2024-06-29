@@ -5,7 +5,7 @@ import problemInformationRouter from "./routes/problemInformation"
 import userDetailRouter from "./routes/userDetail"
 import replyRouter from "./routes/reply";
 import messageRouter from "./routes/message";
-import requestsRouter from "./routes/requests";
+import requestsRouter from "./routes/request";
 import sampleProblemRouter from "./routes/sampleProblem";
 
 export default app

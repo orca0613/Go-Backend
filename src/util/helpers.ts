@@ -157,3 +157,29 @@ export async function isValidMember(bearerHeader: string, name: string): Promise
   return 200
 }
 
+// export function suggestTesterForm(languageIdx: number) {
+//   let title = ""
+//   let content = ""
+//   switch (languageIdx) {
+//     case 0:
+//       title = "We are recruiting beta testers for the official app release!"
+//       content =  "We are looking for people to download the test version of the app first and participate in beta testing. Eligible participants must be Android device users. If you are interested, please reply with your email address. Recruitment will end once the minimum number of testers is reached. We look forward to your involvement!"
+//       break
+//     case 1:
+//       title = "정식 앱 출시를 위한 베타 테스터를 모집합니다!"
+//       content = `테스트 버전의 앱을 먼저 다운로드하고 베타 테스트에 참여해 주실 분들을 찾고 있습니다. 참여 자격은 안드로이드 디바이스 이용자입니다. 관심 있는 분들은 답장으로 이메일 주소를 보내 주시기 바랍니다. 필요한 테스트 인원이 충족되면 모집을 종료할 예정입니다. 많은 참여 부탁드립니다!`
+//       break
+//     case 2:
+//       title = "我们正在招募正式版应用程序发布的 Beta 测试人员！"
+//       content = "我们正在寻找愿意首先下载测试版应用程序并参与 Beta 测试的 Android 设备用户。如果您有兴趣，请回复您的电子邮件地址。当达到所需的最低测试人数时，我们将结束招募。期待您的参与！"
+//       break
+//     case 3:
+//       title = "正式アプリをリリースするためのベータテスターを募集します！"
+//       content = "テスト版のアプリをダウンロードし、ベータテストに参加してくださる方を探しています。参加資格はAndroidデバイスユーザーです。興味のある方は、返信でメールアドレスをお送りください。必要なテスター数に達した時点で、募集を終了します。 たくさんのご参加をお待ちしています！"
+//       break
+//     default:
+//       break
+//   }
+//   return [title, content]
+// }
+

@@ -1,5 +1,5 @@
 import express from "express";
-import { changePassword, checkDuplicateEmail, checkDuplicateName, checkEmailAndSendUrl, checkPasswordAndReturnId, createUser, login, verifyMail } from "../controller/user";
+import { changePassword, checkDuplicateEmail, checkDuplicateName, checkEmailAndSendUrl, checkPasswordAndReturnId, createUser, deleteId, login, verifyMail } from "../controller/user";
 
 const userRouter = express.Router()
 
@@ -13,5 +13,7 @@ userRouter.get("/check-mail/:email", checkEmailAndSendUrl)
 
 userRouter.patch("/verify/:userId", verifyMail)
 userRouter.patch("/change-password", changePassword)
+
+userRouter.delete("/delete-id", deleteId)
 
 export default userRouter

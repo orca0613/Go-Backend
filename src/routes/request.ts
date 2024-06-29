@@ -1,5 +1,5 @@
 import express from "express"
-import { checkRequest, sendRequest } from "../controller/requests"
+import { checkRequest, sendRequest } from "../controller/request"
 
 const requestsRouter = express.Router()
 

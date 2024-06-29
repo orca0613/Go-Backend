@@ -41,7 +41,7 @@ export async function checkDuplicateEmail(req: Request, res: Response, next: Nex
 export async function checkDuplicateName(req: Request, res: Response, next: NextFunction) {
   const name = req.params.name
   try {
-    const user = await User.findOne({ name: name })
+    const user = await UserDetail.findOne({ name: name })
     res.status(200).json(user? true : false)
   } catch (error) {
     next(error)
@@ -86,24 +86,21 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 }
 
 export async function deleteId(req: Request, res: Response, next: NextFunction) {
-  const {id, name} = req.body
-  const bearerHeader = req.headers["authorization"]
-  if (!bearerHeader) {
-    return res.sendStatus(401)
-  }
-  const memberStatus = await isValidMember(bearerHeader, name)
-  if (memberStatus !== 200) {
-    return res.sendStatus(memberStatus)
-  }
+  const {name, email, password} = req.body
   try {
-    if (!isValidObjectId(id)) {
-      return res.sendStatus(400)
-    }
-    const result = await User.findByIdAndDelete(id)
-    if (!result) {
+    const user = await User.findOne({ email: email })
+    if (!user) {
       return res.sendStatus(404)
+    } 
+    if (user.name !== name) {
+      return res.sendStatus(403)
+    }
+    const match = await comparePassword(password, user.password)
+    if (match) {
+      await User.findByIdAndDelete(user._id)
+      return res.sendStatus(204)
     } else {
-      res.sendStatus(200)
+      res.sendStatus(400)
     }
   } catch (error) {
     next(error)
