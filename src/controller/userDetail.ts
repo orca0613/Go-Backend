@@ -4,9 +4,8 @@ import { isValidMember } from "../util/helpers";
 import { User } from "../models/user";
 import _ from "lodash";
 
-export async function addElement(req: Request, res: Response, next: NextFunction) {
-  const {element, name, where} = req.body
-  const bonus = where === "solved"? 100 : 0
+export async function addTried(req: Request, res: Response, next: NextFunction) {
+  const {problemIndex, name} = req.body
   const bearerHeader = req.headers["authorization"]
   if (!bearerHeader) {
     return res.sendStatus(401)
@@ -19,8 +18,30 @@ export async function addElement(req: Request, res: Response, next: NextFunction
     await UserDetail.updateOne({
       name: name
     }, {
-      $addToSet: {[where]: element},
-      $inc: {point: bonus}
+      $addToSet: {tried: problemIndex},
+    })
+    res.sendStatus(204)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export async function addSolved(req: Request, res: Response, next: NextFunction) {
+  const {problemIndex, name} = req.body
+  const bearerHeader = req.headers["authorization"]
+  if (!bearerHeader) {
+    return res.sendStatus(401)
+  }
+  const memberStatus = await isValidMember(bearerHeader, name)
+  if (memberStatus !== 200) {
+    return res.sendStatus(memberStatus)
+  }
+  try {
+    await UserDetail.updateOne({
+      name: name
+    }, {
+      $addToSet: {solved: problemIndex},
+      $inc: {point: 100}
     })
     res.sendStatus(204)
   } catch (error) {
@@ -44,8 +65,13 @@ export async function getUserDetail(req: Request, res: Response, next: NextFunct
 
 export async function getAllCreators(req: Request, res: Response, next: NextFunction) {
   try {
-    const allCreators = await UserDetail.find({ created: {$ne: []}}, {name: 1})
+    const allCreators: string[] = []
+    const result = await UserDetail.find({ created: {$ne: []}}, {name: 1})
+    result.map(c => {
+      allCreators.push(c.name)
+    })
     if (allCreators) {
+      allCreators.sort()
       return res.status(200).json(allCreators)
     }
     res.sendStatus(404)

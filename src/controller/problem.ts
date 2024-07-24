@@ -45,7 +45,7 @@ export async function createProblem(req: Request, res: Response, next: NextFunct
         tier: tier,
       })
     ]);
-    res.status(201).json({ problemIndex: newIdx});
+    res.status(201).json(newIdx);
   } catch (error) {
     next(error);
   }

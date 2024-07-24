@@ -52,7 +52,7 @@ export async function addCorrectUser(req: Request, res: Response, next: NextFunc
     return res.sendStatus(memberStatus)
   }
   try {
-    await Promise.all([
+    const result = await Promise.all([
       ProblemInformation.updateOne({
         problemIndex: problemIndex
       }, {

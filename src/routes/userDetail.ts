@@ -1,9 +1,10 @@
 import express from "express";
-import { addElement, getAllCreators, getUserDetail, changeSetting } from "../controller/userDetail";
+import { getAllCreators, getUserDetail, changeSetting, addTried, addSolved } from "../controller/userDetail";
 
 const userDetailRouter = express.Router()
 
-userDetailRouter.patch("/add-element", addElement)
+userDetailRouter.patch("/add-tried", addTried)
+userDetailRouter.patch("/add-solved", addSolved)
 userDetailRouter.patch("/setting", changeSetting)
 
 userDetailRouter.get("/get/:name", getUserDetail)

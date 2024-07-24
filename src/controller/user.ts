@@ -48,7 +48,7 @@ export async function checkDuplicateName(req: Request, res: Response, next: Next
   }
 }
 
-export async function login(req: Request, res: Response, next: NextFunction) {
+export async function rtkLogin(req: Request, res: Response, next: NextFunction) {
   const {email, password} = req.body
   try {
     const user = await User.findOne({ email: email })
